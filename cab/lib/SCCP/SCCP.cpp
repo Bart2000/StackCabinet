@@ -23,18 +23,36 @@ void SCCP::send(sccp_packet packet)
     uint8_t packet_lenght = HEADER_SIZE + packet.data_len;
     uint8_t data[packet_lenght];
 
-    data[0] = packet.cab_id;
-    data[1] = (packet.cmd_id << 4) & packet.data_len;
-
-    for(uint8_t i = 0; i < 3; i++) 
-    {
-        data[i + HEADER_SIZE] = *(packet.data + i);
-    }
+    encode(data, &packet);
 
     for(uint8_t i = 0; i < packet_lenght; i++) 
     {
         while(!SCCP::tx_ready());
         USART0.TXDATAL = data[i];
+    }
+}
+
+void SCCP::encode(uint8_t* data, sccp_packet* packet) 
+{
+    data[0] = packet->cab_id;
+    data[1] = (packet->cmd_id << 4) | packet->data_len;
+
+    for(uint8_t i = 0; i < packet->data_len; i++) 
+    {
+        data[i + HEADER_SIZE] = *(packet->data + i);
+    }
+}
+
+void SCCP::decode(uint8_t* data, sccp_packet* packet) 
+{
+    packet->cab_id = data[0];
+    packet->cmd_id = data[1] >> 4;
+    packet->data_len = data[1] & 0x0F;
+    packet->data = (uint8_t*)malloc(packet->data_len); // Don't forget to free!
+
+    for(uint8_t i = 0; i < packet->data_len; i++) 
+    {
+        packet->data[i] = *(data + HEADER_SIZE + i);
     }
 }
 

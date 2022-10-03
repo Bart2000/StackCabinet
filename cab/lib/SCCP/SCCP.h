@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <avr/io.h>
+#include <stdlib.h>
 
 #define HEADER_SIZE 2
 
@@ -34,6 +35,8 @@ class SCCP
 
     private:
         uint8_t tx_ready();
+        void encode(uint8_t* data, sccp_packet* packet);
+        void decode(uint8_t* data, sccp_packet* packet);
 };
 
 #endif
