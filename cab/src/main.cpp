@@ -11,7 +11,15 @@ int main(void) {
     char c = 'A';
 
     while(1) {
-        sccp.send(c);
-        _delay_ms(500);
+        uint8_t rgb[3] = {255, 0, 0};
+
+        sccp_packet t = {
+            .cab_id = 1,
+            .cmd_id = SLED,
+            .data_len = sizeof(rgb),
+            .data = rgb
+        };
+        sccp.send(t);
+        _delay_ms(1000);
     }
 }
