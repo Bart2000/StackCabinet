@@ -3,24 +3,33 @@
 #include <stdio.h>
 #include <avr/io.h>
 #include <avr/delay.h>
+#include <string.h>
 #include <SCCP.h>
 
 int main(void) {
     SCCP sccp;
     sccp.init();
-    char c = 'A';
 
     while(1) {
-        uint8_t rgb[3] = {255, 0, 0};
+        uint8_t data[1] = {1};
 
-        sccp_packet t = {
-            .cab_id = 128,
-            .cmd_id = SLED,
-            .data_len = sizeof(rgb),
-            .data = rgb
+        sccp_packet_t packet = {
+            .cab_id = 1,
+            .cmd_id = AGAT,
+            .data_len = sizeof(data),
         };
 
-        sccp.send(t);
-        _delay_ms(1000);
+        memcpy(packet.data, data, packet.data_len);
+
+        //sccp.send(packet);
+        uint8_t tmp[3] = {
+            0xF0,
+            0x01,
+            0x00
+        };
+
+        sccp.handle_command(tmp);
+        
+        _delay_ms(10000);
     }
 }

@@ -4,6 +4,13 @@
 
 #define USART0_BAUD_RATE(BAUD_RATE) ((float)(F_CPU * 64 / (16 * (float)BAUD_RATE)) + 0.5)
 
+typedef void (SCCP::*MP)(uint8_t*); 
+
+MP commands[] = {
+    &SCCP::agat,
+    &SCCP::icab
+};
+
 SCCP::SCCP() 
 {
     // Constructor
@@ -18,7 +25,7 @@ void SCCP::init()
     USART0.BAUD = (uint16_t)USART0_BAUD_RATE(115200);
 }
 
-void SCCP::send(sccp_packet packet) 
+void SCCP::send(sccp_packet_t packet) 
 {
     uint8_t packet_lenght = HEADER_SIZE + packet.data_len;
     uint8_t data[packet_lenght];
@@ -32,7 +39,37 @@ void SCCP::send(sccp_packet packet)
     }
 }
 
-void SCCP::encode(uint8_t* data, sccp_packet* packet) 
+void SCCP::agat(uint8_t* data) 
+{
+    sccp_packet s = {
+        .cab_id = 128,
+        .cmd_id = 1,
+        .data_len = 0
+    };
+
+    send(s);
+}
+
+void SCCP::icab(uint8_t* data) 
+{
+    sccp_packet s = {
+        .cab_id = 128,
+        .cmd_id = 15,
+        .data_len = 0,
+    };
+
+    send(s);
+}
+
+void SCCP::handle_command(uint8_t* raw) 
+{
+    sccp_packet_t packet;
+    decode(raw, &packet);
+
+    (this->*commands[packet.cmd_id])(raw);
+}
+
+void SCCP::encode(uint8_t* data, sccp_packet_t* packet) 
 {
     data[0] = packet->cab_id;
     data[1] = (packet->cmd_id << 4) | packet->data_len;
@@ -43,12 +80,11 @@ void SCCP::encode(uint8_t* data, sccp_packet* packet)
     }
 }
 
-void SCCP::decode(uint8_t* data, sccp_packet* packet) 
+void SCCP::decode(uint8_t* data, sccp_packet_t* packet) 
 {
     packet->cab_id = data[0];
-    packet->cmd_id = data[1] >> 4;
+    packet->cmd_id = data[1] & 0xF0;
     packet->data_len = data[1] & 0x0F;
-    packet->data = (uint8_t*)malloc(packet->data_len); // Don't forget to free!
 
     for(uint8_t i = 0; i < packet->data_len; i++) 
     {
