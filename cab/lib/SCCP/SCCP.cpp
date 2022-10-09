@@ -28,11 +28,15 @@ void SCCP::send(sccp_packet_t packet)
 
     encode(data, &packet);
 
+    reset_tx();
+    disable_rx();
     for(uint8_t i = 0; i < packet_lenght; i++) 
     {
         while(!SCCP::tx_ready());
         USART0.TXDATAL = data[i];
     }
+    while(!(USART0.STATUS & USART_TXCIF_bm));
+    enable_rx();
 }
 
 void SCCP::agat(uint8_t* data) 
@@ -72,7 +76,6 @@ void SCCP::icab(uint8_t* data)
         uint8_t gate = log(gates) / log(2);
         uint8_t data[] = {id, gate, cab_type};
         send(sccp_packet_t(255, IACK, sizeof(data), data));
-        tmp_led(1);
     }
     else 
     {
@@ -122,6 +125,21 @@ void SCCP::decode(uint8_t* data, sccp_packet_t* packet)
 uint8_t SCCP::tx_ready() 
 {
     return USART0.STATUS & USART_DREIF_bm;
+}
+
+void SCCP::reset_tx()
+{
+	USART0.STATUS = USART_TXCIF_bm;
+}
+
+void SCCP::enable_rx() 
+{
+    USART0.CTRLB |= USART_RXEN_bm;
+}
+
+void SCCP::disable_rx() 
+{
+    USART0.CTRLB &= ~USART_RXEN_bm;
 }
 
 void SCCP::tmp_led(uint8_t n) 

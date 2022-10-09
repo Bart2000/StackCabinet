@@ -79,6 +79,9 @@ class SCCP
         void decode(uint8_t* data, sccp_packet_t* packet);
         void tmp_led(uint8_t n);
         uint8_t tx_ready();
+        void reset_tx();
+        void enable_rx();
+        void disable_rx();
 };
 
 #endif

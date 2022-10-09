@@ -26,24 +26,33 @@ int main(void) {
         };
 
         sccp.handle_command(icab);
-        _delay_ms(4000);
+        _delay_ms(1000);
 
-        uint8_t agat[3] = {
-            0x01,
-            0x01,
-            0x03
-        };
+        if(USART0.STATUS & USART_RXCIF_bm) 
+        {
+            PORTA.OUT &= ~PIN7_bm;
+            _delay_ms(500);
+            PORTA.OUT |= PIN7_bm;
+            _delay_ms(500);
+        }
 
-        sccp.handle_command(agat);
-        _delay_ms(4000);
 
-        uint8_t dgat[3] = {
-            0x01,
-            0x11,
-            0x03
-        };
+    //     uint8_t agat[3] = {
+    //         0x01,
+    //         0x01,
+    //         0x03
+    //     };
 
-        sccp.handle_command(dgat);
-        _delay_ms(4000);
+    //     sccp.handle_command(agat);
+    //     _delay_ms(4000);
+
+    //     uint8_t dgat[3] = {
+    //         0x01,
+    //         0x11,
+    //         0x03
+    //     };
+
+    //     sccp.handle_command(dgat);
+    //     _delay_ms(4000);
     }
 }
