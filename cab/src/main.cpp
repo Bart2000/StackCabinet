@@ -19,17 +19,6 @@ int main(void) {
     sccp.init();
 
     while(1) {
-        uint8_t data[1] = {1};
-
-        // sccp_packet_t packet = {
-        //     .cab_id = 1,
-        //     .cmd_id = AGAT,
-        //     .data_len = sizeof(data),
-        // };
-
-        //memcpy(packet.data, data, packet.data_len);
-
-        //sccp.send(packet);
         uint8_t icab[3] = {
             0x00,
             0x11,
@@ -37,7 +26,15 @@ int main(void) {
         };
 
         sccp.handle_command(icab);
-        
-        _delay_ms(5000);
+        _delay_ms(4000);
+
+        uint8_t agat[3] = {
+            0x01,
+            0x01,
+            0x03
+        };
+
+        sccp.handle_command(agat);
+        _delay_ms(4000);
     }
 }

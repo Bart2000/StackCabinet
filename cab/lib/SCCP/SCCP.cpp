@@ -37,13 +37,21 @@ void SCCP::send(sccp_packet_t packet)
 void SCCP::agat(uint8_t* data) 
 {
     // TODO : implement agat method
+    uint8_t gate = data[0];
+
+    // Check if gate is out of bounds
+    if(gate >= 4) return;
+    
+    // Pull gate low
+    PORTC.DIRSET |= 1 << gate;
+    PORTC.OUT |= 1 << gate;
 }
 
 void SCCP::icab(uint8_t* data) 
 {
     uint8_t gates = PORTC.IN & GATES;
 
-    if(!gates) return;
+    if(!gates || ) return;
 
     if(!id) 
     {
