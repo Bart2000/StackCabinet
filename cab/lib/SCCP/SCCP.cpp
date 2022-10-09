@@ -8,6 +8,7 @@ sccp_command_t commands[] = {
 SCCP::SCCP() 
 {
     id = 0;
+    cab_type = SQUARE;
 }
 
 void SCCP::init() 
@@ -48,7 +49,7 @@ void SCCP::icab(uint8_t* data)
     {
         id = data[0];
         uint8_t gate = log(gates) / log(2);
-        uint8_t data[] = {id, gate, 0};
+        uint8_t data[] = {id, gate, cab_type};
         send(sccp_packet_t(255, IACK, sizeof(data), data));
     }
     else 
@@ -63,9 +64,12 @@ void SCCP::handle_command(uint8_t* raw)
     sccp_packet_t packet;
     decode(raw, &packet);
 
+    // Not intended for this cabinet
+    if(packet.cab_id != id && packet.cab_id != 0) return;
+
     // Command does not exist
     if(packet.cmd_id > sizeof(commands) / sizeof(commands[0])) return;
-    
+
     // Exectute command handler
     (this->*commands[packet.cmd_id].handler)(packet.data);
 }

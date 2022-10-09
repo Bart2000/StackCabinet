@@ -28,6 +28,12 @@ enum Commands {
     NACK
 };
 
+enum Type {
+    SQUARE,
+    RECTANGLE,
+    BIGSQUARE
+};
+
 typedef void (SCCP::*MP)(uint8_t*); 
 
 typedef struct sccp_packet 
@@ -66,6 +72,7 @@ class SCCP
 
     private:
         uint8_t id;
+        Type cab_type;
         void encode(uint8_t* data, sccp_packet_t* packet);
         void decode(uint8_t* data, sccp_packet_t* packet);
         void tmp_led(uint8_t n);

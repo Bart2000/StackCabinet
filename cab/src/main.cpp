@@ -32,8 +32,8 @@ int main(void) {
         //sccp.send(packet);
         uint8_t icab[3] = {
             0x00,
-            0x10,
-            0x00
+            0x11,
+            0x01
         };
 
         sccp.handle_command(icab);
