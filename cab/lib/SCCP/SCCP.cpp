@@ -1,19 +1,13 @@
 #include <SCCP.h>
 
-#define F_CPU 3333333
-
-#define USART0_BAUD_RATE(BAUD_RATE) ((float)(F_CPU * 64 / (16 * (float)BAUD_RATE)) + 0.5)
-
-typedef void (SCCP::*MP)(uint8_t*); 
-
-MP commands[] = {
-    &SCCP::agat,
-    &SCCP::icab
+sccp_command_t commands[] = {
+    {&SCCP::agat, 0},
+    {&SCCP::icab, 100}
 };
 
 SCCP::SCCP() 
 {
-    // Constructor
+    id = 0;
 }
 
 void SCCP::init() 
@@ -41,24 +35,27 @@ void SCCP::send(sccp_packet_t packet)
 
 void SCCP::agat(uint8_t* data) 
 {
-    sccp_packet s = {
-        .cab_id = 128,
-        .cmd_id = 1,
-        .data_len = 0
-    };
-
-    send(s);
+    // TODO : implement agat method
 }
 
 void SCCP::icab(uint8_t* data) 
 {
-    sccp_packet s = {
-        .cab_id = 128,
-        .cmd_id = 15,
-        .data_len = 0,
-    };
+    uint8_t gates = PORTC.IN & GATES;
 
-    send(s);
+    if(!gates) return;
+
+    if(!id) 
+    {
+        id = data[0];
+        uint8_t gate = log(gates) / log(2);
+        uint8_t data[] = {id, gate, 0};
+        send(sccp_packet_t(255, IACK, sizeof(data), data));
+    }
+    else 
+    {
+        uint8_t data[] = {id};
+        send(sccp_packet_t(255, INACK, sizeof(data), data));
+    }
 }
 
 void SCCP::handle_command(uint8_t* raw) 
@@ -66,7 +63,11 @@ void SCCP::handle_command(uint8_t* raw)
     sccp_packet_t packet;
     decode(raw, &packet);
 
-    (this->*commands[packet.cmd_id])(raw);
+    // Command does not exist
+    if(packet.cmd_id > sizeof(commands) / sizeof(commands[0])) return;
+    
+    // Exectute command handler
+    (this->*commands[packet.cmd_id].handler)(packet.data);
 }
 
 void SCCP::encode(uint8_t* data, sccp_packet_t* packet) 
@@ -83,7 +84,7 @@ void SCCP::encode(uint8_t* data, sccp_packet_t* packet)
 void SCCP::decode(uint8_t* data, sccp_packet_t* packet) 
 {
     packet->cab_id = data[0];
-    packet->cmd_id = data[1] & 0xF0;
+    packet->cmd_id = data[1] >> 4;
     packet->data_len = data[1] & 0x0F;
 
     for(uint8_t i = 0; i < packet->data_len; i++) 
@@ -95,4 +96,15 @@ void SCCP::decode(uint8_t* data, sccp_packet_t* packet)
 uint8_t SCCP::tx_ready() 
 {
     return USART0.STATUS & USART_DREIF_bm;
+}
+
+void SCCP::tmp_led(uint8_t n) 
+{
+    for(uint8_t i = 0; i < n; i++)
+    {
+        PORTA.OUT &= ~PIN7_bm;
+        _delay_ms(100);
+        PORTA.OUT |= PIN7_bm;
+        _delay_ms(100);
+    }
 }
