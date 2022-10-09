@@ -21,7 +21,7 @@ int main(void) {
     while(1) {
         uint8_t icab[3] = {
             0x00,
-            0x11,
+            0x21,
             0x01
         };
 
@@ -35,6 +35,15 @@ int main(void) {
         };
 
         sccp.handle_command(agat);
+        _delay_ms(4000);
+
+        uint8_t dgat[3] = {
+            0x01,
+            0x11,
+            0x03
+        };
+
+        sccp.handle_command(dgat);
         _delay_ms(4000);
     }
 }

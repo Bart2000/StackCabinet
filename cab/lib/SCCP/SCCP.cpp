@@ -2,6 +2,7 @@
 
 sccp_command_t commands[] = {
     {&SCCP::agat, 0},
+    {&SCCP::dgat, 0},
     {&SCCP::icab, 100}
 };
 
@@ -36,7 +37,6 @@ void SCCP::send(sccp_packet_t packet)
 
 void SCCP::agat(uint8_t* data) 
 {
-    // TODO : implement agat method
     uint8_t gate = data[0];
 
     // Check if gate is out of bounds
@@ -47,11 +47,24 @@ void SCCP::agat(uint8_t* data)
     PORTC.OUT |= 1 << gate;
 }
 
+void SCCP::dgat(uint8_t* data) 
+{
+    uint8_t gate = data[0];
+
+    // Check if gate is out of bounds
+    if(gate >= 4) return;
+
+    // Set gate as input again
+    PORTC.DIRCLR |= 1 << gate;
+    //PORTC.PIN3CTRL |= PORT_INVEN_bm | PORT_PULLUPEN_bm;
+}
+
 void SCCP::icab(uint8_t* data) 
 {
     uint8_t gates = PORTC.IN & GATES;
 
-    if(!gates || ) return;
+    // Check if gate is activated and no gate is configured as output
+    if(!gates || PORTC.OUT & GATES) return;
 
     if(!id) 
     {
@@ -59,6 +72,7 @@ void SCCP::icab(uint8_t* data)
         uint8_t gate = log(gates) / log(2);
         uint8_t data[] = {id, gate, cab_type};
         send(sccp_packet_t(255, IACK, sizeof(data), data));
+        tmp_led(1);
     }
     else 
     {

@@ -19,6 +19,7 @@ class SCCP;
 
 enum Commands {
     AGAT,
+    DGAT,
     ICAB,
     IACK,
     INACK,
@@ -68,6 +69,7 @@ class SCCP
         void send(sccp_packet_t packet);
         void handle_command(uint8_t* raw);
         void agat(uint8_t* data);
+        void dgat(uint8_t* data);
         void icab(uint8_t* data);
 
     private:
