@@ -19,40 +19,18 @@ int main(void) {
     sccp.init();
 
     while(1) {
-        uint8_t icab[3] = {
-            0x00,
-            0x21,
-            0x01
-        };
-
-        sccp.handle_command(icab);
-        _delay_ms(1000);
+        uint8_t buffer[HEADER_SIZE + DATA_SIZE];
 
         if(USART0.STATUS & USART_RXCIF_bm) 
         {
-            PORTA.OUT &= ~PIN7_bm;
-            _delay_ms(500);
-            PORTA.OUT |= PIN7_bm;
-            _delay_ms(500);
+            uint8_t i = 0;
+            while(USART0.STATUS & USART_RXCIF_bm) 
+            {
+                if(i > sizeof(buffer)) break;
+                buffer[i++] = USART0_RXDATAL;
+            }
+
+            sccp.handle_command(buffer);
         }
-
-
-    //     uint8_t agat[3] = {
-    //         0x01,
-    //         0x01,
-    //         0x03
-    //     };
-
-    //     sccp.handle_command(agat);
-    //     _delay_ms(4000);
-
-    //     uint8_t dgat[3] = {
-    //         0x01,
-    //         0x11,
-    //         0x03
-    //     };
-
-    //     sccp.handle_command(dgat);
-    //     _delay_ms(4000);
     }
 }
