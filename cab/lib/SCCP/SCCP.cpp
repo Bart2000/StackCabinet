@@ -18,7 +18,13 @@ void SCCP::init()
     USART0.CTRLA = USART_LBME_bm;
     USART0.CTRLB = USART_ODME_bm | USART_TXEN_bm | USART_RXEN_bm;
     USART0.CTRLC = USART_CHSIZE_8BIT_gc | USART_SBMODE_1BIT_gc;
-    USART0.BAUD = (uint16_t)USART0_BAUD_RATE(115200);
+
+    int8_t  sigrow_value = SIGROW.OSC20ERR3V;               // read signed error
+	int32_t baud         = (F_CPU * 64) / (115200 * 16); // ideal baud rate
+	baud *= (1024 + sigrow_value);                          // sum resolution + error
+	baud /= 1024;                                           // divide by resolution
+	USART0.BAUD = (int16_t)baud;                            // set adjusted bau
+    //USART0.BAUD = (uint16_t)USART0_BAUD_RATE(115200);
 }
 
 void SCCP::send(sccp_packet_t packet) 
@@ -87,6 +93,8 @@ void SCCP::icab(uint8_t* data)
 void SCCP::handle_command(uint8_t* raw) 
 {
     sccp_packet_t packet;
+    while(!SCCP::tx_ready());
+    USART0.TXDATAL = raw[1];
     decode(raw, &packet);
 
     // Not intended for this cabinet

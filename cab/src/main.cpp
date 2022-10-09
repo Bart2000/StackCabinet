@@ -4,6 +4,7 @@
 #include <avr/io.h>
 #include <avr/delay.h>
 #include <SCCP.h>
+#include <string.h>
 
 int main(void) {
     PORTA.DIR = PIN7_bm;
@@ -26,11 +27,16 @@ int main(void) {
             uint8_t i = 0;
             while(USART0.STATUS & USART_RXCIF_bm) 
             {
-                if(i > sizeof(buffer)) break;
-                buffer[i++] = USART0_RXDATAL;
+                //if(i > sizeof(buffer)) break;
+                buffer[i] = USART0_RXDATAL;
+                i++;
             }
-
+            _delay_ms(100);
+            USART0.TXDATAL = buffer[1];
+            return;
             sccp.handle_command(buffer);
+            memset(buffer, 0, sizeof(buffer));
+            return;
         }
     }
 }
