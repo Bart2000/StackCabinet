@@ -11,6 +11,7 @@
 #define DATA_SIZE 16
 #define GATE_PORT PORTC
 #define GATES (PIN0_bm | PIN1_bm | PIN2_bm | PIN3_bm)
+#define BASE_ID 255
 
 #define F_CPU 3333333
 #define BAUDRATE 115200
@@ -76,7 +77,7 @@ class SCCP
         void dgat(uint8_t* data);
         void icab(uint8_t* data);
         void receive_byte(uint8_t byte);
-        
+
     private:
         uint8_t id;
         Type cab_type;
