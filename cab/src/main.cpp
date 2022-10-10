@@ -35,6 +35,7 @@ void setup()
     SREG |= CPU_I_bm;
 }
 
+// Interrupt Service Routine for RX receive interrupt to load byte into SCCP buffer
 ISR(USART0_RXC_vect) 
 {
     sccp.receive_byte(USART0_RXDATAL);

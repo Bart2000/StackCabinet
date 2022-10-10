@@ -9,6 +9,8 @@
 
 #define HEADER_SIZE 2
 #define DATA_SIZE 16
+#define CMD_ID_SHIFT 4
+#define DATA_LEN_MASK 0x0F
 #define GATE_PORT PORTC
 #define GATES (PIN0_bm | PIN1_bm | PIN2_bm | PIN3_bm)
 #define BASE_ID 255
@@ -19,6 +21,7 @@
 
 class SCCP;
 
+// SCCP commands
 enum Commands {
     AGAT,
     DGAT,
@@ -31,14 +34,17 @@ enum Commands {
     NACK
 };
 
+// Type of the cabinet
 enum Type {
     SQUARE,
     RECTANGLE,
     BIGSQUARE
 };
 
+// Type definition for class method pointer
 typedef void (SCCP::*MP)(uint8_t*); 
 
+// Typedef struct for SCCP packets
 typedef struct sccp_packet 
 {
     uint8_t cab_id;
@@ -60,6 +66,7 @@ typedef struct sccp_packet
     }
 } sccp_packet_t;
 
+// Typedef struct for SCCP handler commands
 typedef struct sccp_command 
 {
     MP handler;
@@ -72,24 +79,24 @@ class SCCP
         SCCP();
         void init();
         void send(sccp_packet_t packet);
-        void handle_command();
+        void receive_byte(uint8_t byte);
         void agat(uint8_t* data);
         void dgat(uint8_t* data);
         void icab(uint8_t* data);
-        void receive_byte(uint8_t byte);
 
     private:
-        uint8_t id;
-        Type cab_type;
         uint8_t buffer[HEADER_SIZE + DATA_SIZE];
         uint8_t buffer_length;
+        uint8_t id;
+        Type cab_type;
+        void handle_command();
         void encode(uint8_t* data, sccp_packet_t* packet);
         void decode(uint8_t* data, sccp_packet_t* packet);
-        void tmp_led(uint8_t n);
-        uint8_t tx_ready();
-        void reset_tx();
         void enable_rx();
         void disable_rx();
+        void reset_tx();
+        uint8_t tx_ready();
+        void tmp_led(uint8_t n);
 };
 
 #endif
