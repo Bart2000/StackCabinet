@@ -4,7 +4,11 @@
 sccp_command_t commands[] = {
     {&SCCP::agat, 0},
     {&SCCP::dgat, 0},
-    {&SCCP::icab, 100}
+    {&SCCP::icab, 100},
+    {&SCCP::iack, 0},
+    {&SCCP::inack, 0},
+    {&SCCP::ocab, 0},
+    {&SCCP::sled, 100},
 };
 
 /**
@@ -88,10 +92,10 @@ void SCCP::receive_byte(uint8_t byte)
  * Method to activate the given gate (AGAT). 
  * @param data The data from the sccp_packet_t. This will contain the gate to be activated.
  */ 
-void SCCP::agat(uint8_t* data) 
+void SCCP::agat(uint8_t* packet_data) 
 {
     // The gate to be activated
-    uint8_t gate = data[0];
+    uint8_t gate = packet_data[0];
 
     // Check if gate is out of bounds
     if(gate >= 4) return;
@@ -99,29 +103,37 @@ void SCCP::agat(uint8_t* data)
     // Pull gate low
     PORTC.DIRSET |= 1 << gate;
     PORTC.OUT |= 1 << gate;
+
+    // Send ACK
+    uint8_t data[] = {id, AGAT};
+    send(sccp_packet_t(BASE_ID, ACK, sizeof(data), data));
 }
 
 /**
  * Method to deactivate the given gate (DGAT).
  * @param data The data from the sccp_packet_t. This will contain the gate to be deactivated.
  */ 
-void SCCP::dgat(uint8_t* data) 
+void SCCP::dgat(uint8_t* packet_data) 
 {
     // The gate to be deactivated
-    uint8_t gate = data[0];
+    uint8_t gate = packet_data[0];
 
     // Check if gate is out of bounds
     if(gate >= 4) return;
 
     // Set gate as input again
     PORTC.DIRCLR |= 1 << gate;
+
+    // Send ACK
+    uint8_t data[] = {id, DGAT};
+    send(sccp_packet_t(BASE_ID, ACK, sizeof(data), data));
 }
 
 /**
  * Method to identify the cabinet (ICAB). This succeeds if a gate is activated and an id has not been assigned yet.
  * @param The data from the sccp_packet_t. This will contain the assigned id.
  */ 
-void SCCP::icab(uint8_t* data) 
+void SCCP::icab(uint8_t* packet_data) 
 {
     // Get activated gates
     uint8_t gates = PORTC.IN & GATES;
@@ -132,16 +144,55 @@ void SCCP::icab(uint8_t* data)
     // Check if id has not been assigned yet
     if(!id) 
     {
-        id = data[0];
+        this->id = packet_data[0];
         uint8_t gate = log(gates) / log(2);
-        uint8_t data[] = {id, gate, cab_type};
-        send(sccp_packet_t(255, IACK, sizeof(data), data));
+        uint8_t data[] = {this->id, gate, this->cab_type};
+        send(sccp_packet_t(BASE_ID, IACK, sizeof(data), data));
     }
     else 
     {
         uint8_t data[] = {id};
-        send(sccp_packet_t(255, INACK, sizeof(data), data));
+        send(sccp_packet_t(BASE_ID, INACK, sizeof(data), data));
     }
+}
+
+/**
+ * Method to for SCCP IACK. Currently, this method has no implementation. Its only use is to prevent offset issues in the command list.
+ * @param The data from the sccp_packet_t. This will be empty.
+ */ 
+void SCCP::iack(uint8_t* packet_data) 
+{
+    // No implementation
+}
+
+/**
+ * Method to for SCCP INACK. Currently, this method has no implementation. Its only use is to prevent offset issues in the command list.
+ * @param The data from the sccp_packet_t. This will be empty.
+ */ 
+void SCCP::inack(uint8_t* packet_data) 
+{
+    // No implementation
+}
+
+/**
+ * Method to open cabinet (OCAB).
+ * @param The data from the sccp_packet_t. This will be empty.
+ */ 
+void SCCP::ocab(uint8_t* packet_data) 
+{
+    // TODO : implement OCAB
+}
+
+/**
+ * Method to for SCCP ACK. Currently, this method has no implementation. Its only use is to prevent offset issues in the command list.
+ * @param The data from the sccp_packet_t. This will contain the RGB values and the leds to be turned on.
+ */ 
+void SCCP::sled(uint8_t* packet_data) 
+{
+    // TODO : implement SLED with RGB
+    tmp_led(1);
+    uint8_t data[] = {id, SLED};
+    send(sccp_packet_t(BASE_ID, ACK, sizeof(data), data));
 }
 
 /**

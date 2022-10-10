@@ -80,9 +80,13 @@ class SCCP
         void init();
         void send(sccp_packet_t packet);
         void receive_byte(uint8_t byte);
-        void agat(uint8_t* data);
-        void dgat(uint8_t* data);
-        void icab(uint8_t* data);
+        void agat(uint8_t* packet_data);
+        void dgat(uint8_t* packet_data);
+        void icab(uint8_t* packet_data);
+        void iack(uint8_t* packet_data);
+        void inack(uint8_t* packet_data);
+        void ocab(uint8_t* packet_data);
+        void sled(uint8_t* packet_data);
 
     private:
         uint8_t buffer[HEADER_SIZE + DATA_SIZE];
