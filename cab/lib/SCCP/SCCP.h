@@ -13,6 +13,7 @@
 #define GATES (PIN0_bm | PIN1_bm | PIN2_bm | PIN3_bm)
 
 #define F_CPU 3333333
+#define BAUDRATE 115200
 #define USART0_BAUD_RATE(BAUD_RATE) ((float)(F_CPU * 64 / (16 * (float)BAUD_RATE)) + 0.5)
 
 class SCCP;
@@ -44,7 +45,10 @@ typedef struct sccp_packet
     uint8_t data_len;
     uint8_t data[DATA_SIZE];
 
-    sccp_packet() {};
+    sccp_packet() 
+    {
+        *data = {0};
+    };
 
     sccp_packet(uint8_t cab_id, uint8_t cmd_id, uint8_t data_len, uint8_t* data) 
     {
@@ -67,14 +71,17 @@ class SCCP
         SCCP();
         void init();
         void send(sccp_packet_t packet);
-        void handle_command(uint8_t* raw);
+        void handle_command();
         void agat(uint8_t* data);
         void dgat(uint8_t* data);
         void icab(uint8_t* data);
-
+        void receive_byte(uint8_t byte);
+        
     private:
         uint8_t id;
         Type cab_type;
+        uint8_t buffer[HEADER_SIZE + DATA_SIZE];
+        uint8_t buffer_length;
         void encode(uint8_t* data, sccp_packet_t* packet);
         void decode(uint8_t* data, sccp_packet_t* packet);
         void tmp_led(uint8_t n);

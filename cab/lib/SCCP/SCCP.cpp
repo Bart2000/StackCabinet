@@ -8,6 +8,8 @@ sccp_command_t commands[] = {
 
 SCCP::SCCP() 
 {
+    *buffer = {0};
+    buffer_length = 0;
     id = 0;
     cab_type = SQUARE;
 }
@@ -15,16 +17,15 @@ SCCP::SCCP()
 void SCCP::init() 
 {
     PORTB.PIN2CTRL = PORT_PULLUPEN_bm;
-    USART0.CTRLA = USART_LBME_bm;
+    USART0.CTRLA = USART_LBME_bm | USART_RXCIE_bm;
     USART0.CTRLB = USART_ODME_bm | USART_TXEN_bm | USART_RXEN_bm;
     USART0.CTRLC = USART_CHSIZE_8BIT_gc | USART_SBMODE_1BIT_gc;
 
     int8_t  sigrow_value = SIGROW.OSC20ERR3V;               // read signed error
-	int32_t baud         = (F_CPU * 64) / (115200 * 16); // ideal baud rate
+	int32_t baud         = (F_CPU * 64) / (BAUDRATE * 16); // ideal baud rate
 	baud *= (1024 + sigrow_value);                          // sum resolution + error
 	baud /= 1024;                                           // divide by resolution
 	USART0.BAUD = (int16_t)baud;                            // set adjusted bau
-    //USART0.BAUD = (uint16_t)USART0_BAUD_RATE(115200);
 }
 
 void SCCP::send(sccp_packet_t packet) 
@@ -66,7 +67,6 @@ void SCCP::dgat(uint8_t* data)
 
     // Set gate as input again
     PORTC.DIRCLR |= 1 << gate;
-    //PORTC.PIN3CTRL |= PORT_INVEN_bm | PORT_PULLUPEN_bm;
 }
 
 void SCCP::icab(uint8_t* data) 
@@ -90,12 +90,10 @@ void SCCP::icab(uint8_t* data)
     }
 }
 
-void SCCP::handle_command(uint8_t* raw) 
+void SCCP::handle_command() 
 {
     sccp_packet_t packet;
-    while(!SCCP::tx_ready());
-    USART0.TXDATAL = raw[1];
-    decode(raw, &packet);
+    decode(buffer, &packet);
 
     // Not intended for this cabinet
     if(packet.cab_id != id && packet.cab_id != 0) return;
@@ -104,7 +102,9 @@ void SCCP::handle_command(uint8_t* raw)
     if(packet.cmd_id > sizeof(commands) / sizeof(commands[0])) return;
 
     // Exectute command handler
+    _delay_us(10);
     (this->*commands[packet.cmd_id].handler)(packet.data);
+    memset(buffer, 0, sizeof(buffer));
 }
 
 void SCCP::encode(uint8_t* data, sccp_packet_t* packet) 
@@ -158,5 +158,16 @@ void SCCP::tmp_led(uint8_t n)
         _delay_ms(100);
         PORTA.OUT |= PIN7_bm;
         _delay_ms(100);
+    }
+}
+
+void SCCP::receive_byte(uint8_t byte) 
+{
+    this->buffer[buffer_length++] = byte;
+
+    if(this->buffer_length == HEADER_SIZE + (this->buffer[1] & 0x0F)) 
+    {
+        buffer_length = 0;
+        handle_command();
     }
 }

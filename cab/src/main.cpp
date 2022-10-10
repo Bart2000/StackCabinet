@@ -3,8 +3,11 @@
 #include <stdio.h>
 #include <avr/io.h>
 #include <avr/delay.h>
+#include <avr/interrupt.h>
 #include <SCCP.h>
 #include <string.h>
+
+SCCP sccp;
 
 int main(void) {
     PORTA.DIR = PIN7_bm;
@@ -16,27 +19,13 @@ int main(void) {
     PORTC.PIN2CTRL |= PORT_INVEN_bm | PORT_PULLUPEN_bm;
     PORTC.PIN3CTRL |= PORT_INVEN_bm | PORT_PULLUPEN_bm;
 
-    SCCP sccp;
+    SREG |= CPU_I_bm;
     sccp.init();
 
-    while(1) {
-        uint8_t buffer[HEADER_SIZE + DATA_SIZE];
+    while(1);
+}
 
-        if(USART0.STATUS & USART_RXCIF_bm) 
-        {
-            uint8_t i = 0;
-            while(USART0.STATUS & USART_RXCIF_bm) 
-            {
-                //if(i > sizeof(buffer)) break;
-                buffer[i] = USART0_RXDATAL;
-                i++;
-            }
-            _delay_ms(100);
-            USART0.TXDATAL = buffer[1];
-            return;
-            sccp.handle_command(buffer);
-            memset(buffer, 0, sizeof(buffer));
-            return;
-        }
-    }
+ISR(USART0_RXC_vect) 
+{
+    sccp.receive_byte(USART0_RXDATAL);
 }
