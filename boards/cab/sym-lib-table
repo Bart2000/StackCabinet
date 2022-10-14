@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name "StackCabinet")(type "KiCad")(uri "${KICAD6_SYMBOL_DIR}/StackCabinet.kicad_sym")(options "")(descr ""))
+)

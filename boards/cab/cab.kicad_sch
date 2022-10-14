@@ -1,5 +1,103 @@
 (kicad_sch (version 20211123) (generator eeschema)
+
+  (uuid 52cf8084-de37-4636-a04b-2a688972ca6c)
+
   (paper "A4")
-  (lib_symbols)
-  (symbol_instances)
+
+  (lib_symbols
+  )
+
+
+  (text "Cabinet PCB" (at 187.96 190.5 0)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid 61aaf989-4990-45d8-a8e9-b83564b37ff9)
+  )
+
+  (sheet (at 57.15 60.96) (size 39.37 24.13) (fields_autoplaced)
+    (stroke (width 0.1524) (type solid) (color 0 0 0 0))
+    (fill (color 0 0 0 0.0000))
+    (uuid 1bd567e6-ffc9-413a-9d16-b9df05bf659e)
+    (property "Sheet name" "power" (id 0) (at 57.15 60.2484 0)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheet file" "power.kicad_sch" (id 1) (at 57.15 85.6746 0)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (pin "5V" input (at 96.52 78.74 0)
+      (effects (font (size 1.27 1.27)) (justify right))
+      (uuid e0e88bf8-a56a-484b-9e91-fce96d8916fb)
+    )
+    (pin "24V" input (at 96.52 74.93 0)
+      (effects (font (size 1.27 1.27)) (justify right))
+      (uuid 64ea1b79-dd1c-4d37-a8e0-b58011eac1ba)
+    )
+  )
+
+  (sheet_instances
+    (path "/" (page "1"))
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e" (page "2"))
+  )
+
+  (symbol_instances
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/2eb96319-773c-4268-aed5-c696900fee5c"
+      (reference "#PWR0101") (unit 1) (value "+36V") (footprint "")
+    )
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/bb8d7282-70a2-4c74-b59c-aacf1cd133a3"
+      (reference "#PWR0102") (unit 1) (value "GND") (footprint "")
+    )
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/485dc46f-f1dc-4538-a889-4c3ab59a9e37"
+      (reference "#PWR0103") (unit 1) (value "+36V") (footprint "")
+    )
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/9f1ae6c6-e6e4-4678-9ff1-d024f4c5586e"
+      (reference "#PWR0104") (unit 1) (value "GND") (footprint "")
+    )
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/663058d9-b38e-4ca8-9a55-177a37e98bea"
+      (reference "#PWR?") (unit 1) (value "GND") (footprint "")
+    )
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/7f32b797-2175-4505-b544-8f2cb65801c1"
+      (reference "C1") (unit 1) (value "470uF") (footprint "")
+    )
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/0b4acc0c-9c0f-4851-a79b-db60cecc83c0"
+      (reference "C2") (unit 1) (value "180uF") (footprint "")
+    )
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/9eb2c8d2-3ff0-4276-8db7-b961571ba60c"
+      (reference "C3") (unit 1) (value "1uF") (footprint "")
+    )
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/c9f2f60c-2fbc-4aa9-8c94-f7218d65a3e8"
+      (reference "C4") (unit 1) (value "470uF") (footprint "")
+    )
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/c1b8b41e-52c8-495f-b486-93be637d1b52"
+      (reference "C5") (unit 1) (value "1uF") (footprint "")
+    )
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/f4bc3d69-7fdf-40b5-a857-de14be769121"
+      (reference "C6") (unit 1) (value "220uF") (footprint "")
+    )
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/b4642942-2c99-4bf0-81e5-1890b4ac5376"
+      (reference "C7") (unit 1) (value "680pF") (footprint "")
+    )
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/f510cf60-cb84-4bcb-baff-e6c8308f6c48"
+      (reference "D1") (unit 1) (value "40V") (footprint "")
+    )
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/5d576b81-f4ac-41bf-abec-6c71ed15590c"
+      (reference "D2") (unit 1) (value "40V") (footprint "")
+    )
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/2563b175-c820-48b8-8670-ec38994972f9"
+      (reference "L1") (unit 1) (value "68uH") (footprint "")
+    )
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/dc6692c1-40c0-45e2-8d61-a4b5bace0b44"
+      (reference "L2") (unit 1) (value "47uH") (footprint "")
+    )
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/251ba959-bcbe-49e1-a4b0-67c46678ec64"
+      (reference "R1") (unit 1) (value "2.7k") (footprint "")
+    )
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/1b36f9d9-3e86-4a62-87fd-8c7e8e8ca852"
+      (reference "R2") (unit 1) (value "50k") (footprint "")
+    )
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/a16eaf6f-eeee-4b3a-8db2-7804a53e251a"
+      (reference "U1") (unit 1) (value "XL1509-5.0") (footprint "")
+    )
+    (path "/1bd567e6-ffc9-413a-9d16-b9df05bf659e/98df36e6-26cb-4cd1-91c6-b69339c0b4f6"
+      (reference "U2") (unit 1) (value "XL1509-ADJ") (footprint "")
+    )
+  )
 )
