@@ -45,7 +45,7 @@
         "silk_text_upright": false,
         "zones": {
           "45_degree_only": false,
-          "min_clearance": 0.09999999999999999
+          "min_clearance": 0.254
         }
       },
       "diff_pair_dimensions": [
@@ -350,7 +350,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "cab.kicad_pro",
+    "filename": "cab-backup.kicad_pro",
     "version": 1
   },
   "net_settings": {
@@ -418,14 +418,12 @@
           "LED0_PWM",
           "LED1_PWM",
           "LED2_PWM",
-          "LED3_PWM",
           "Net-(R11-Pad1)",
           "R_PWM",
           "SEL0",
           "SEL1",
           "SEL2",
-          "SEL3",
-          "SOL_EN"
+          "SEL3"
         ],
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgba(0, 0, 0, 0.000)",
