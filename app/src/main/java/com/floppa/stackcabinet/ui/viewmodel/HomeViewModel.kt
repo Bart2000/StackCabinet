@@ -1,12 +1,43 @@
 package com.floppa.stackcabinet.ui.viewmodel
 
-import androidx.lifecycle.ViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
+import android.Manifest
+import android.app.Application
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import androidx.lifecycle.AndroidViewModel
+import com.floppa.stackcabinet.repository.BluetoothRepository
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.MultiplePermissionsState
 
-@HiltViewModel
-class HomeViewModel @Inject constructor(
-    // Add input
-) : ViewModel() {
 
+class HomeViewModel(application: Application) : AndroidViewModel(application) {
+    private val context = getApplication<Application>()
+    private val repository = BluetoothRepository(context = context.applicationContext)
+
+
+
+    fun checkBt() {
+        repository.checkBt()
+    }
+
+    fun checkEnable(succes: () -> Unit) {
+        if (repository.bluetoothAdapter?.isEnabled == false) {
+            succes()
+        }
+    }
+
+    fun startDiscovery(){
+        repository.startDiscovery()
+    }
+
+    @OptIn(ExperimentalPermissionsApi::class)
+    fun checkPermissions(listPermissions: MultiplePermissionsState) {
+        if (!listPermissions.allPermissionsGranted) {
+            listPermissions.launchMultiplePermissionRequest()
+        }
+    }
+
+    fun checkPermissionGranted(permission: String): Boolean {
+        return (ActivityCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED)
+    }
 }

@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">StackCabinet Companion App</string>
     <string name="home">Home</string>
+    <string name="txt_btn_bt_on">Turn Bluetooth on</string>
+    <string name="txt_btn_bt_off">Turn Bluetooth off</string>
+    <string name="txt_toast_bt_en">Bluetooth is Enabled</string>
+    <string name="txt_toast_bt_dis">Bluetooth is Disabled</string>
+    <string name="txt_toast_bt_not_granted">Bluetooth Permission is not Granted</string>
+    <string name="txt_btn_bt_scan">Scan for devices</string>
 </resources>

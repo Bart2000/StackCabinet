@@ -15,9 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import com.floppa.stackcabinet.navigation.CompanionNavHost
 import com.floppa.stackcabinet.navigation.Screens
 import com.floppa.stackcabinet.ui.theme.StackCabinetCompanionAppTheme
-import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
