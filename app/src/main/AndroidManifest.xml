@@ -43,8 +43,12 @@
             android:theme="@style/Theme.StackCabinetCompanionApp">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.PAIRING_REQUEST" />
+                <action android:name="android.bluetooth.device.action.FOUND" />
+                <action android:name="android.bluetooth.device.action.BOND_STATE_CHANGED" />
+                <action android:name="android.bluetooth.adapter.action.DISCOVERY_FINISHED" />
+
             </intent-filter>
 
             <meta-data

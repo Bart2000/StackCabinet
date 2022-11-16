@@ -1,29 +1,69 @@
 package com.floppa.stackcabinet.navigation
 
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.floppa.stackcabinet.ui.HomeCompose
-
+import androidx.navigation.compose.rememberNavController
+import com.floppa.stackcabinet.R
+import com.floppa.stackcabinet.ui.BootCompose
+import com.floppa.stackcabinet.ui.GridCompose
+import com.floppa.stackcabinet.ui.SetupCompose
+import com.floppa.stackcabinet.ui.viewmodel.BootViewModel
+import com.floppa.stackcabinet.ui.viewmodel.GridViewModel
+import com.floppa.stackcabinet.ui.viewmodel.SetupViewModel
 
 @Composable
-fun CompanionNavHost(navController: NavHostController, innerPadding: PaddingValues) {
+fun CompanionNavHost() {
+    val navController = rememberNavController()
+    val context = LocalContext.current
     NavHost(
         navController = navController,
-        startDestination = Screens.Home.route,
-        modifier = Modifier.padding(innerPadding)
+        startDestination = Screens.Boot.route
     ) {
-        composable(Screens.Home.route) {
-            HomeCompose(
-                navController = navController,
-                viewModel = viewModel())
+
+        composable(Screens.Boot.route) {
+            Scaffold {
+                Column(modifier = Modifier.padding(it)) {
+                    BootCompose(
+                        navController = navController,
+                        viewModel = BootViewModel(context))
+                }
+            }
         }
 
+        composable(Screens.Setup.route) {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text(text = stringResource(id = R.string.txt_topBar_setup)) }
+                    )
+                }
+            ) {
+                Column(modifier = Modifier.padding(it)) {
+                    SetupCompose(
+                        navController = navController,
+                        viewModel = SetupViewModel(context))
+                }
+            }
+        }
+
+        composable(Screens.Grid.route) {
+            Scaffold {
+                Column(modifier = Modifier.padding(it)) {
+                    GridCompose(
+                        navController = navController,
+                        viewModel = GridViewModel(context))
+                }
+            }
+        }
     }
 }
 

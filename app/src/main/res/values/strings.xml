@@ -1,10 +1,17 @@
 <resources>
     <string name="app_name">StackCabinet Companion App</string>
-    <string name="home">Home</string>
+    <string name="txt_screen_setup">Setup</string>
     <string name="txt_btn_bt_on">Turn Bluetooth on</string>
     <string name="txt_btn_bt_off">Turn Bluetooth off</string>
     <string name="txt_toast_bt_en">Bluetooth is Enabled</string>
     <string name="txt_toast_bt_dis">Bluetooth is Disabled</string>
     <string name="txt_toast_bt_not_granted">Bluetooth Permission is not Granted</string>
     <string name="txt_btn_bt_scan">Scan for devices</string>
+    <string name="txt_screen_grid">Grid overview Cabinet</string>
+    <string name="txt_topBar_setup">Setup a new StackCabinet</string>
+    <string name="txt_btn_search_base">Search for Stack Cabinet Bases</string>
+    <string name="txt_unable_to_run">This device does not satisfy the required specifications to run this app. Missing Bluetooth. Please use a different device. Exiting the app now.</string>
+    <string name="txt_title_unable_to_run">Unable to run app</string>
+    <string name="txt_title_all_setup">Successfully paired with a stackCabinet</string>
+    <string name="txt_all_setup">Pairing with a StackCabinet Base was successful, in the next screen you are able to setup your StackCabinet</string>
 </resources>
