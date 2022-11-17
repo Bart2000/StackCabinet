@@ -125,7 +125,10 @@ fun SetupCompose(
     }
 
 
-    // When a device is connected show dialog
+    /**
+     * When a device is connected show dialog and navigate to the next screen, [Screens.Grid.route].
+     * Backstack is popped, no way to go back to the [SetupCompose] screen.
+     */
     if (bounded) {
         ShowDialog{
             navController.navigate(Screens.Grid.route) {
@@ -147,7 +150,7 @@ fun SetupCompose(
                 CenterElement {
                     Button(onClick = {
                         viewModel.foundDevice.clear()
-                        viewModel.checkEnable(
+                        viewModel.checkIsEnabled(
                             enable = {
                                 viewModel.enableBluetooth()
                             }, enabled = {
@@ -232,7 +235,9 @@ fun SetupCompose(
     }
 }
 
-// BroadcastReceiver
+/**
+ * Universal [BroadcastReceiver], is used to register to different receivers
+ */
 @Composable
 fun SystemBroadcastReceiver(
     systemAction: String,
@@ -306,6 +311,9 @@ fun ShowDialog(setShowDialog: () -> Unit) {
     }
 }
 
+/**
+ * Simple function to preview [ShowDialog]
+ */
 @Preview
 @Composable
 fun ShowDialogPreview(){

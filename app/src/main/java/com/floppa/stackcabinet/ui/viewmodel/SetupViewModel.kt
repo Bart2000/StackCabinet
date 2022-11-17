@@ -10,18 +10,15 @@ import com.floppa.stackcabinet.repository.BluetoothRepository
 class SetupViewModel(context: Context) : ViewModel() {
     private val repository = BluetoothRepository(context = context)
 
-
-    /**
-     * List of found StackCabinet Bases
-     */
+    // List of found StackCabinet Bases
     var foundDevice = mutableStateListOf<BluetoothDevice>()
 
-
     /**
+     * Check if Bluetooth is Enabled on the device
      * @param enable lambda callback when bluetooth is not enabled
      * @param enabled lambda callback when bluetooth is enabled
      */
-    fun checkEnable(enable: () -> Unit, enabled: () -> Unit) {
+    fun checkIsEnabled(enable: () -> Unit, enabled: () -> Unit) {
         if (repository.bluetoothAdapter?.isEnabled == false) {
             enable()
         } else {
@@ -43,17 +40,10 @@ class SetupViewModel(context: Context) : ViewModel() {
         repository.stopDiscovery()
     }
 
+    /**
+     * Enable Bluetooth for the devices
+     */
     fun enableBluetooth() {
         repository.enableBluetooth()
     }
-
-    fun disableBluetooth() {
-        repository.disableBluetooth()
-    }
-
-
-    suspend fun setupSocket(device: BluetoothDevice) {
-        repository.setupSocket(device)
-    }
-
 }
