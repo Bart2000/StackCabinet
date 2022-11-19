@@ -138,6 +138,8 @@ class BluetoothRepository(private val context: Context) {
 
     /**
      * Start the [InputStream] and [OutputStream] to the [BluetoothDevice]
+     * @param socket the [BluetoothSocket] that will be opened, is function is call by [ConnectThread]
+     * When the connection is made with the device.
      */
     private fun startStream(socket: BluetoothSocket){
         this.socket = socket
