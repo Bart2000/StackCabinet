@@ -421,6 +421,7 @@
           "LED3_PWM",
           "Net-(R11-Pad1)",
           "R_PWM",
+          "RxD",
           "SEL0",
           "SEL1",
           "SEL2",
@@ -446,7 +447,7 @@
       "idf": "",
       "netlist": "",
       "specctra_dsn": "",
-      "step": "",
+      "step": "C:/Users/bartv/Downloads/cab.step",
       "vrml": ""
     },
     "page_layout_descr_file": ""
