@@ -20,24 +20,80 @@ int main(void) {
 
 void setup() 
 {
-    PORTB.DIR |= PIN0_bm;
-    PORTB.OUT |= PIN0_bm;
+    PORTB.DIR |= PIN0_bm | PIN1_bm | PIN5_bm;
+    PORTA.DIR |= PIN3_bm | PIN4_bm | PIN5_bm;
+    PORTC.DIR |= PIN0_bm;
+
+    //PORTB.OUT |= PIN0_bm;
     
     // TCA0_SPLIT_CTRLESET |= TCA_SPLIT_CMD;
     // TCA0_SPLIT_CTRLESET |= TCA_SPLIT_CMD_RESET_gc;
     // TCA0_SPLIT_CTRLESET |= TCA_SPLIT_CMD_RESTART_gc;
    
-   TCA0.SINGLE.CTRLA &= ~(TCA_SINGLE_ENABLE_bm);  
-   
+    TCA0.SINGLE.CTRLA &= ~(TCA_SINGLE_ENABLE_bm);  
     TCA0.SINGLE.CTRLESET = TCA_SINGLE_CMD_RESET_gc; 
 
+    PORTMUX.CTRLC |= PORTMUX_TCA02_bm;
+    PORTMUX.CTRLD |= PORTMUX_TCB0_bm;
+
     TCA0.SPLIT.CTRLD = TCA_SPLIT_SPLITM_bm;
-    TCA0.SPLIT.LPER = 0xCF;
-    TCA0.SPLIT.HPER = 0xCF;
-    TCA0.SPLIT.LCMP0 = 0x40;
-    TCA0.SPLIT.HCMP0 = 0x40;
-    TCA0.SPLIT.CTRLB |= TCA_SPLIT_LCMP0EN_bm | TCA_SPLIT_HCMP0EN_bm;
+    TCA0.SPLIT.LPER = 0xFF;
+    TCA0.SPLIT.HPER = 0xFF;
+    TCA0.SPLIT.LCMP0 = 0x00;    // Power (PNP)
+    TCA0.SPLIT.LCMP1 = 0xFF;    //G
+    TCA0.SPLIT.LCMP2 = 0xFF;    //B
+    TCA0.SPLIT.HCMP0 = 0xFF;    //R
+    TCA0.SPLIT.HCMP1 = 0x00;    // Power 2
+    TCA0.SPLIT.HCMP2 = 0x00;    // Power 3
+    TCA0.SPLIT.CTRLB |= TCA_SPLIT_LCMP0EN_bm | TCA_SPLIT_LCMP1EN_bm | TCA_SPLIT_LCMP2EN_bm | TCA_SPLIT_HCMP0EN_bm | TCA_SPLIT_HCMP1EN_bm | TCA_SPLIT_HCMP2EN_bm;
     TCA0.SPLIT.CTRLA |= TCA_SPLIT_CLKSEL_DIV16_gc | TCA_SPLIT_ENABLE_bm;
+
+
+    TCB0.CCMP = 0x80FF;
+    TCB0.CTRLA |= TCB_CLKSEL_CLKDIV2_gc | TCB_ENABLE_bm;
+    TCB0.CTRLB |= TCB_CCMPEN_bm;
+    TCB0.CTRLB |= TCB_CNTMODE_PWM8_gc;
+
+
+    int count = 0;
+    int color = 0;
+    while(1) 
+    {
+        _delay_ms(8);
+        if(count++ >= 255) 
+        {
+            count = 0;
+            color += 1;
+        }
+        
+        if(color == 0) {
+            TCA0.SPLIT.LCMP1 = count;
+        }
+        if(color == 1) {
+            TCA0.SPLIT.LCMP2 = count;
+        }
+        if(color == 2) {
+            TCA0.SPLIT.HCMP0 = count;
+        }
+        if(color == 3) {
+            break;
+        }
+    }
+
+    count = 0;
+    while(1) 
+    {
+        _delay_ms(8);
+        if(count++ >= 255) 
+        {
+            count = 0;
+        }
+
+        TCA0.SPLIT.LCMP0 = count;
+        TCA0.SPLIT.HCMP1 = count;
+        TCA0.SPLIT.HCMP2 = count;
+        TCB0.CCMPH = count;
+    }
 
     
 
