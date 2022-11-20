@@ -46,8 +46,8 @@ void SCCP::init()
 void SCCP::send(sccp_packet_t packet) 
 {
     // Calcualte packet length
-    uint8_t packet_lenght = HEADER_SIZE + packet.data_len;
-    uint8_t data[packet_lenght];
+    uint8_t packet_length = HEADER_SIZE + packet.data_len;
+    uint8_t data[packet_length];
 
     // Encode packet
     encode(data, &packet);
@@ -56,8 +56,10 @@ void SCCP::send(sccp_packet_t packet)
     reset_tx();
     disable_rx();
 
+    _delay_ms(5);
+
     // Send data
-    for(uint8_t i = 0; i < packet_lenght; i++) 
+    for(uint8_t i = 0; i < packet_length; i++) 
     {
         while(!SCCP::tx_ready());
         USART0.TXDATAL = data[i];
