@@ -3733,7 +3733,7 @@
     (uuid 8acf6c01-51de-4e79-b903-1dfc399c51f5)
     (property "Reference" "U2" (id 0) (at 66.04 68.58 0))
     (property "Value" "XL1509-5.0" (id 1) (at 66.04 71.12 0))
-    (property "Footprint" "Package_SO:SOP-8_3.9x4.9mm_P1.27mm" (id 2) (at 66.04 60.96 0)
+    (property "Footprint" "StackCabinet:XLE1509" (id 2) (at 66.04 60.96 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "https://datasheet.lcsc.com/lcsc/1809050422_XLSEMI-XL1509-5-0E1_C61063.pdf" (id 3) (at 66.04 58.42 0)
@@ -4222,7 +4222,7 @@
     (uuid d9251f9c-6022-402f-b111-d7ea029f5bed)
     (property "Reference" "U1" (id 0) (at 66.04 21.59 0))
     (property "Value" "XL1509-ADJ" (id 1) (at 66.04 24.13 0))
-    (property "Footprint" "Package_SO:SOP-8_3.9x4.9mm_P1.27mm" (id 2) (at 66.04 13.97 0)
+    (property "Footprint" "StackCabinet:XLE1509" (id 2) (at 66.04 13.97 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "https://datasheet.lcsc.com/lcsc/1809042013_XLSEMI-XL1509-ADJE1_C74192.pdf" (id 3) (at 66.04 10.16 0)
@@ -4684,10 +4684,10 @@
       (reference "TP20") (unit 1) (value "LED3_PWM") (footprint "StackCabinet:testpad")
     )
     (path "/d9251f9c-6022-402f-b111-d7ea029f5bed"
-      (reference "U1") (unit 1) (value "XL1509-ADJ") (footprint "Package_SO:SOP-8_3.9x4.9mm_P1.27mm")
+      (reference "U1") (unit 1) (value "XL1509-ADJ") (footprint "StackCabinet:XLE1509")
     )
     (path "/8acf6c01-51de-4e79-b903-1dfc399c51f5"
-      (reference "U2") (unit 1) (value "XL1509-5.0") (footprint "Package_SO:SOP-8_3.9x4.9mm_P1.27mm")
+      (reference "U2") (unit 1) (value "XL1509-5.0") (footprint "StackCabinet:XLE1509")
     )
     (path "/a9781253-aec5-40b2-9c6f-6516d5c04024"
       (reference "U3") (unit 1) (value " ATTINY1616-MNR") (footprint "Package_DFN_QFN:VQFN-20-1EP_3x3mm_P0.4mm_EP1.7x1.7mm")
