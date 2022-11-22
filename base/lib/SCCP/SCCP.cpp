@@ -11,9 +11,7 @@ void SCCP::identify()
     // Identify first cabinet
     gpio_set_level(GPIO_NUM_12, 0);
     uint8_t data[] = {1};
-    send(sccp_packet_t(BROADCAST_ID, ICAB, sizeof(data), data));
-
-
+    //send(sccp_packet_t(BROADCAST_ID, ICAB, sizeof(data), data));
 }
 
 void SCCP::send(sccp_packet_t packet) 
