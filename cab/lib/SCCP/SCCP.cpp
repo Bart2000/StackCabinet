@@ -159,7 +159,7 @@ void SCCP::icab(uint8_t* packet_data)
 }
 
 /**
- * Method to for SCCP IACK. Currently, this method has no implementation. Its only use is to prevent offset issues in the command list.
+ *  * Method to for SCCP IACK. Currently, this method has no implementation. Its only use is to prevent offset issues in the command list.
  * @param The data from the sccp_packet_t. This will be empty.
  */ 
 void SCCP::iack(uint8_t* packet_data) 

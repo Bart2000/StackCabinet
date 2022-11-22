@@ -20,13 +20,12 @@ void SCCP::send(sccp_packet_t packet)
 {
     // Calculate packet length
     uint8_t packet_length = HEADER_SIZE + packet.data_len;
-    printf("%d\n", packet_length);
     uint8_t data[packet_length] = {0};
 
     encode(data, &packet);
 
     uart_write_bytes(UART_NUM_1, (const  char*)data, sizeof(data));
-    vTaskDelay(500);
+    vTaskDelay(100);
     
 }
 
