@@ -9,6 +9,7 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "driver/uart.h"
+#include <soc/uart_reg.h>
 
 #define BAUDRATE 115200
 #define BUF_SIZE 2048
@@ -30,7 +31,8 @@ extern "C"
 static void UART_receive_loop(void* handle) 
 {
     uart_event_t event;
-    uint8_t buffer[1024];
+    uint8_t buffer[HEADER_SIZE + DATA_SIZE];
+    uint8_t buffer_count;
 
     while(1) 
     {
@@ -40,7 +42,11 @@ static void UART_receive_loop(void* handle)
             {
                 case UART_DATA:
                     uart_read_bytes(UART_NUM, buffer, event.size, portMAX_DELAY);
-                    printf("%s\n", buffer);
+
+                    if((buffer[HEADER_SIZE-1] & DATA_LEN_MASK) + HEADER_SIZE == event.size)
+                    {
+                        //sccp.handle_command(buffer);
+                    }
                     break;
                 default:
                     break;
@@ -51,38 +57,10 @@ static void UART_receive_loop(void* handle)
     vTaskDelete(handle);
 }
 
-void setup() 
-{
-    // Config specific for GM67
-    uart_config_t uart_config =
-    {
-        .baud_rate = BAUDRATE,              // Baudrate of GM67
-        .data_bits = UART_DATA_8_BITS,
-        .parity = UART_PARITY_DISABLE,
-        .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-        .source_clk = UART_SCLK_APB,
-    };
-
-    // Set pins to UART 1
-    uart_set_pin(UART_NUM, TX_GPIO, RX_GPIO, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-    
-    // Configure UART 1
-    uart_param_config(UART_NUM, &uart_config);
-    
-    // Install UART drivers for UART 1
-    uart_driver_install(UART_NUM, BUF_SIZE, BUF_SIZE, 20, &uart_queue, 0);
-    //uart_driver_install(UART_NUM_1, 256, 256, 0, NULL, 0);
-    gpio_set_direction(GPIO_NUM_13, GPIO_MODE_INPUT);
-    gpio_set_direction(GPIO_NUM_12, GPIO_MODE_INPUT);
-    gpio_set_direction(GPIO_NUM_14, GPIO_MODE_INPUT);
-    gpio_set_direction(GPIO_NUM_27, GPIO_MODE_INPUT);
-}
-
 void app_main() 
 {   
-    setup();
-    xTaskCreate(UART_receive_loop, "UART_receive_loop", 2048, NULL, 1, NULL);
+    //sccp.initialize();
+    //xTaskCreate(sccp.receive_loop, "UART_receive_loop", 2048, NULL, 1, NULL);
     //xTaskCreate(UART_receive_loop, "UART receive interrupt", 2048, NULL, 1, &handle);
 
     uint8_t packets[][3] = {
@@ -94,7 +72,7 @@ void app_main()
     
     uint8_t count = 0;
 
-    
+    gpio_set_level(GPIO_NUM_12, 0);
 
     while(1) 
     {
@@ -103,13 +81,11 @@ void app_main()
             sccp.identify();
         }
 
-        // if(!gpio_get_level(GPIO_NUM_13)) 
-        // {
-        //     if(count >= sizeof(packets) / sizeof(packets[0])) break;
-        //     uint8_t* packet = packets[count++];
-        //     uart_write_bytes(UART_NUM, (const  char*)packet, 3);
-        //     vTaskDelay(200);
-        // }
+        if(!gpio_get_level(GPIO_NUM_13)) 
+        {
+            printf("Bruh\n");
+            vTaskDelay(200);
+        }
         // if(!gpio_get_level(GPIO_NUM_14)) 
         // {
         //     uint8_t sled[2] = {0x01, 0x60};

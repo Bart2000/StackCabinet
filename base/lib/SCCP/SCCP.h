@@ -74,15 +74,22 @@ typedef struct sccp_command
 class SCCP 
 {
     public: 
+        static QueueHandle_t uart_queue;
         SCCP();
         void identify();
         void send(sccp_packet_t packet);
+        static void receive_loop(void* handle);
+        void iack(uint8_t* packet_data);
+        void inack(uint8_t* packet_data);
 
     private:
-        uint8_t buffer[HEADER_SIZE + DATA_SIZE];
-        uint8_t buffer_length;
+        static uint8_t buffer[HEADER_SIZE + DATA_SIZE];
+        static uint8_t buffer_length;
         uint8_t id;
+        void initialize();
         void encode(uint8_t* data, sccp_packet_t* packet);
+        void decode(uint8_t* data, sccp_packet_t* packet);
+        void handle_command();
 };
 
 #endif
