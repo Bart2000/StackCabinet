@@ -4,6 +4,7 @@
 uint8_t SCCP::buffer[HEADER_SIZE + DATA_SIZE] = {0};
 QueueHandle_t SCCP::uart_queue;
 uint8_t SCCP::buffer_length = 2;
+TaskHandle_t SCCP::handle;
 
 sccp_command_t commands[] = {
     {NULL, 0},
@@ -25,8 +26,8 @@ sccp_command_t commands[] = {
 SCCP::SCCP() 
 {
     initialize();
-    TaskHandle_t handle;
-    xTaskCreate(this->receive_loop, "UART_receive_loop", 2048, (void*)this, 1, &handle);
+    xTaskCreate(this->receive_loop, "UART_receive_loop", 2048, (void*)this, 1, &SCCP::handle);
+    SCCP::control_flag = 0;
 }
 
 void SCCP::initialize() 
@@ -60,10 +61,28 @@ void SCCP::initialize()
 
 void SCCP::identify() 
 {
+    std::vector<uint8_t[5]> graph;
+    graph.push_back({0, 0, 0, 0, 0});
+
     // Identify first cabinet
     gpio_set_level(GPIO_NUM_12, 0);
     uint8_t data[] = {1};
     send(sccp_packet_t(BROADCAST_ID, ICAB, sizeof(data), data));
+
+    sccp_packet_t response;
+
+    if(get_response(&response) && response.cmd_id == IACK) 
+    {
+        uint8_t id = data[0];
+        uint8_t gate = data[1];
+        uint8_t type = data[2];
+
+        uint8_t cab[5];
+        cab[gate] = 255;
+        graph.push_back(cab);
+        printf("%d\n", response.data[1]);
+    };
+
 }
 
 void SCCP::send(sccp_packet_t packet) 
@@ -135,8 +154,8 @@ void SCCP::receive_loop(void* handle)
 
                     if((SCCP::buffer[HEADER_SIZE-1] & DATA_LEN_MASK) + HEADER_SIZE == event.size)
                     {
-                        //printf("bruh??\n");
                         sccp.handle_command();
+                        //sccp.control_flag = 1;
                     }
                     break;
                 default:
@@ -149,12 +168,23 @@ void SCCP::receive_loop(void* handle)
     vTaskDelete(NULL);
 }
 
+uint8_t SCCP::get_response(sccp_packet_t* response) 
+{
+    while(this->control_flag) vTaskDelay(1);
+    decode(this->buffer, response);
+
+    SCCP::control_flag = 0;
+    return 1;
+}
+
 void SCCP::iack(uint8_t* data) 
 {
-    printf("new_id: %d\ngate: %d\ntype: %d\n", data[0], data[1], data[2]);
+    this->control_flag = 1;
+    //printf("new_id: %d\ngate: %d\ntype: %d\n", data[0], data[1], data[2]);
 }
 
 void SCCP::inack(uint8_t* data) 
 {
-    printf("current_id: %d\n", data[0]);
+    this->control_flag = 1;
+    //printf("current_id: %d\n", data[0]);
 }

@@ -81,11 +81,6 @@ void app_main()
             sccp.identify();
         }
 
-        if(!gpio_get_level(GPIO_NUM_13)) 
-        {
-            printf("Bruh\n");
-            vTaskDelay(200);
-        }
         // if(!gpio_get_level(GPIO_NUM_14)) 
         // {
         //     uint8_t sled[2] = {0x01, 0x60};

@@ -6,6 +6,7 @@
 #include <string.h>
 #include <driver/gpio.h>
 #include <driver/uart.h>
+#include <vector>
 
 #define HEADER_SIZE 2
 #define DATA_SIZE 16
@@ -20,7 +21,7 @@
 class SCCP;
 
 // SCCP commands
-enum Commands {
+enum Command {
     AGAT,
     DGAT,
     ICAB,
@@ -75,6 +76,8 @@ class SCCP
 {
     public: 
         static QueueHandle_t uart_queue;
+        static TaskHandle_t handle;
+        uint8_t control_flag;
         SCCP();
         void identify();
         void send(sccp_packet_t packet);
@@ -86,10 +89,12 @@ class SCCP
         static uint8_t buffer[HEADER_SIZE + DATA_SIZE];
         static uint8_t buffer_length;
         uint8_t id;
+        std::vector<uint8_t[5]> graph;
         void initialize();
         void encode(uint8_t* data, sccp_packet_t* packet);
         void decode(uint8_t* data, sccp_packet_t* packet);
         void handle_command();
+        uint8_t get_response(sccp_packet_t* response);
 };
 
 #endif
