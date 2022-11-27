@@ -56,7 +56,7 @@ void SCCP::send(sccp_packet_t packet)
     reset_tx();
     disable_rx();
 
-    _delay_ms(5);
+    //_delay_ms(5);
 
     // Send data
     for(uint8_t i = 0; i < packet_length; i++) 

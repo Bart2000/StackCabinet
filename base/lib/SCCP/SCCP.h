@@ -84,12 +84,13 @@ class SCCP
         static void receive_loop(void* handle);
         void iack(uint8_t* packet_data);
         void inack(uint8_t* packet_data);
+        void ack(uint8_t* packet_data);
 
     private:
         static uint8_t buffer[HEADER_SIZE + DATA_SIZE];
         static uint8_t buffer_length;
         uint8_t id;
-        std::vector<uint8_t[5]> graph;
+        //std::vector<uint8_t[5]> graph;
         void initialize();
         void encode(uint8_t* data, sccp_packet_t* packet);
         void decode(uint8_t* data, sccp_packet_t* packet);

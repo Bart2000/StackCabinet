@@ -14,6 +14,7 @@ sccp_command_t commands[] = {
     {&SCCP::inack, 0},
     {NULL, 0},
     {NULL, 100},
+    {&SCCP::ack, 100},
 };
 
 #define BAUDRATE 115200
@@ -28,6 +29,8 @@ SCCP::SCCP()
     initialize();
     xTaskCreate(this->receive_loop, "UART_receive_loop", 2048, (void*)this, 1, &SCCP::handle);
     SCCP::control_flag = 0;
+    this->id = 1;
+    printf("Pointer task1: %p\n", this);
 }
 
 void SCCP::initialize() 
@@ -61,27 +64,108 @@ void SCCP::initialize()
 
 void SCCP::identify() 
 {
-    std::vector<uint8_t[5]> graph;
-    graph.push_back({0, 0, 0, 0, 0});
+    std::vector<std::vector<uint8_t>> graph;
+    graph.push_back({255});
 
     // Identify first cabinet
     gpio_set_level(GPIO_NUM_12, 0);
-    uint8_t data[] = {1};
+    uint8_t data[] = {this->id};
     send(sccp_packet_t(BROADCAST_ID, ICAB, sizeof(data), data));
 
     sccp_packet_t response;
+    int r = get_response(&response);
 
-    if(get_response(&response) && response.cmd_id == IACK) 
+    if(r && response.cmd_id == IACK) 
     {
-        uint8_t id = data[0];
-        uint8_t gate = data[1];
-        uint8_t type = data[2];
+        uint8_t id = response.data[0];
+        uint8_t gate = response.data[1];
+        uint8_t type = response.data[2];
 
-        uint8_t cab[5];
-        cab[gate] = 255;
-        graph.push_back(cab);
-        printf("%d\n", response.data[1]);
-    };
+        uint8_t t[5] = {0,0,0,0,0};
+        t[gate] = 255;
+        std::vector<uint8_t> v(t, t + sizeof(t));
+        graph.push_back(v);
+        //printf("%d\n", response.data[1]);
+        std::fill_n(this->buffer, sizeof(this->buffer), 0);
+        this->id += 1;
+    }
+    else 
+    {
+        printf("stopped identification: %d\n", r);
+        return;
+    }
+
+    gpio_set_level(GPIO_NUM_12, 1);
+
+    uint8_t size = graph.size();
+
+    for(uint8_t cab = 1; cab < size; ++cab) 
+    {
+        for(uint8_t gate = 0; gate < 4; gate++) 
+        {
+            printf("cab: %d\ngate: %d\n", cab, gate);
+            int test = graph.at(cab).at(gate);
+
+            if(test == 0) 
+            {
+                uint8_t data[] = {gate};
+                send(sccp_packet_t(cab, AGAT, sizeof(data), data));
+
+                sccp_packet_t response2;
+                if(get_response(&response2) && response2.cmd_id == ACK) 
+                {
+                    uint8_t data2[] = {this->id};
+                    send(sccp_packet_t(BROADCAST_ID, ICAB, sizeof(data2), data2));
+                    sccp_packet_t response3;
+
+                    if(get_response(&response3) && response3.cmd_id == IACK) 
+                    {
+                        uint8_t t[5] = {0,0,0,0,0};
+                        t[response3.data[1]] = cab;
+                        std::vector<uint8_t> e(t, t + sizeof(t));
+                        graph.push_back(e);
+                        graph.at(cab).at(gate) = response3.data[0];
+                        //printf("There is cab on gate %d\n", gate);
+                        this->id++;
+                        size++;
+                    }
+
+                    sccp_packet_t response4;
+                    send(sccp_packet_t(cab, DGAT, sizeof(data), data));
+
+                    if(get_response(&response4) && response4.cmd_id == ACK) 
+                    {
+                    }
+                }
+                else 
+                {
+                    //printf("Failed to open gate %d\n", gate);
+                    return;
+                }
+                //printf("yes?: %d\n", r);
+                // return;
+            }
+        }
+    }
+
+    printf("{");
+    for(auto cab = graph.begin(); cab != graph.end(); ++cab) 
+    {
+        printf("{");
+        std::vector<uint8_t> c = *cab;
+        
+        for(auto neighbour = c.begin(); neighbour != c.end(); ++neighbour) 
+        {
+            if(&*neighbour == &c.back()) printf("%d", *neighbour);
+            else if(&*neighbour != &c.back() || *neighbour == 0) printf("%d, ", *neighbour);
+            else printf("%d, ", *neighbour);
+        }
+        
+        if(c != graph.back()) printf("}, ");
+        else printf("}");
+        
+    }
+    printf("}\n");
 
 }
 
@@ -94,7 +178,6 @@ void SCCP::send(sccp_packet_t packet)
     encode(data, &packet);
 
     uart_write_bytes(UART_NUM_1, (const  char*)data, sizeof(data));
-    vTaskDelay(100);
 }
 
 void SCCP::encode(uint8_t* data, sccp_packet_t* packet) 
@@ -115,11 +198,6 @@ void SCCP::handle_command()
     sccp_packet_t packet;
     decode(buffer, &packet);
 
-    printf("cab_id: %d\ncmd_id: %d\ndata_len: %d\n", packet.cab_id, packet.cmd_id, packet.data_len);
-
-    //MP command = commands[0].handler;
-
-    //if(command != NULL) 
     (this->*commands[packet.cmd_id].handler)(packet.data);
 }
 
@@ -141,7 +219,7 @@ void SCCP::receive_loop(void* handle)
 {
     uart_event_t event;
 
-    SCCP sccp = *(SCCP*)handle;
+    SCCP* sccp = (SCCP*)handle;
 
     while(1) 
     {
@@ -150,12 +228,12 @@ void SCCP::receive_loop(void* handle)
             switch(event.type) 
             {
                 case UART_DATA:
-                    uart_read_bytes(UART_NUM_1, SCCP::buffer, event.size, portMAX_DELAY);
+                    uart_read_bytes(UART_NUM, sccp->buffer, event.size, portMAX_DELAY);
 
-                    if((SCCP::buffer[HEADER_SIZE-1] & DATA_LEN_MASK) + HEADER_SIZE == event.size)
+                    if((sccp->buffer[HEADER_SIZE-1] & DATA_LEN_MASK) + HEADER_SIZE == event.size)
                     {
-                        sccp.handle_command();
-                        //sccp.control_flag = 1;
+                        sccp->handle_command();
+                        uart_flush(UART_NUM);
                     }
                     break;
                 default:
@@ -170,21 +248,34 @@ void SCCP::receive_loop(void* handle)
 
 uint8_t SCCP::get_response(sccp_packet_t* response) 
 {
-    while(this->control_flag) vTaskDelay(1);
+    unsigned long time1 = esp_timer_get_time() / 1000ULL;
+
+    while(!this->control_flag) 
+    {
+        unsigned long time2 = esp_timer_get_time() / 1000ULL;
+
+        if(time2-time1 > 5) return 0;
+
+        vTaskDelay(1);
+    } 
+    
     decode(this->buffer, response);
 
-    SCCP::control_flag = 0;
+    this->control_flag = 0;
     return 1;
 }
 
 void SCCP::iack(uint8_t* data) 
 {
     this->control_flag = 1;
-    //printf("new_id: %d\ngate: %d\ntype: %d\n", data[0], data[1], data[2]);
 }
 
 void SCCP::inack(uint8_t* data) 
 {
     this->control_flag = 1;
-    //printf("current_id: %d\n", data[0]);
+}
+
+void SCCP::ack(uint8_t* data) 
+{
+    this->control_flag = 1;
 }

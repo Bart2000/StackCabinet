@@ -28,41 +28,8 @@ extern "C"
     void app_main(void);
 }
 
-static void UART_receive_loop(void* handle) 
-{
-    uart_event_t event;
-    uint8_t buffer[HEADER_SIZE + DATA_SIZE];
-    uint8_t buffer_count;
-
-    while(1) 
-    {
-        if(xQueueReceive(uart_queue, (void*)&event, (TickType_t)portMAX_DELAY)) 
-        {
-            switch(event.type) 
-            {
-                case UART_DATA:
-                    uart_read_bytes(UART_NUM, buffer, event.size, portMAX_DELAY);
-
-                    if((buffer[HEADER_SIZE-1] & DATA_LEN_MASK) + HEADER_SIZE == event.size)
-                    {
-                        //sccp.handle_command(buffer);
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-        vTaskDelay(1);
-    }
-    vTaskDelete(handle);
-}
-
 void app_main() 
 {   
-    //sccp.initialize();
-    //xTaskCreate(sccp.receive_loop, "UART_receive_loop", 2048, NULL, 1, NULL);
-    //xTaskCreate(UART_receive_loop, "UART receive interrupt", 2048, NULL, 1, &handle);
-
     uint8_t packets[][3] = {
         {0x00, 0x21, 0x01}, // ICAB
         {0x01, 0x01, 0x00}, // AGAT
@@ -78,7 +45,10 @@ void app_main()
     {
         if(!gpio_get_level(GPIO_NUM_13)) 
         {
+            unsigned long time1 = esp_timer_get_time() / 1000ULL;
             sccp.identify();
+            printf("Time: %ld\n", (long int)((esp_timer_get_time() / 1000ULL) - time1));
+            vTaskDelay(100);
         }
 
         // if(!gpio_get_level(GPIO_NUM_14)) 
