@@ -15,8 +15,17 @@
 #define BASE_ID 255
 #define GATE GPIO_NUM_12
 #define BROADCAST_ID 0
+#define BAUDRATE 115200
+#define BUF_SIZE 2048
+#define UART_NUM UART_NUM_1
+#define TX_GPIO 10
+#define RX_GPIO 9
+#define TIMEOUT_MS 5
+#define MEMBERS 6
 
 #define BAUDRATE 115200
+
+using Graph = std::vector<std::vector<uint8_t>>;
 
 class SCCP;
 
@@ -79,7 +88,7 @@ class SCCP
         static TaskHandle_t handle;
         uint8_t control_flag;
         SCCP();
-        void identify();
+        uint8_t identify();
         void send(sccp_packet_t packet);
         static void receive_loop(void* handle);
         void iack(uint8_t* packet_data);
@@ -87,10 +96,9 @@ class SCCP
         void ack(uint8_t* packet_data);
 
     private:
-        static uint8_t buffer[HEADER_SIZE + DATA_SIZE];
-        static uint8_t buffer_length;
+        uint8_t buffer[HEADER_SIZE + DATA_SIZE];
         uint8_t id;
-        //std::vector<uint8_t[5]> graph;
+        Graph graph;
         void initialize();
         void encode(uint8_t* data, sccp_packet_t* packet);
         void decode(uint8_t* data, sccp_packet_t* packet);

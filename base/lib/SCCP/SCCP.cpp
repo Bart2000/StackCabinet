@@ -1,9 +1,7 @@
 #include "SCCP.h"
 #include "stdio.h"
 
-uint8_t SCCP::buffer[HEADER_SIZE + DATA_SIZE] = {0};
 QueueHandle_t SCCP::uart_queue;
-uint8_t SCCP::buffer_length = 2;
 TaskHandle_t SCCP::handle;
 
 sccp_command_t commands[] = {
@@ -17,20 +15,13 @@ sccp_command_t commands[] = {
     {&SCCP::ack, 100},
 };
 
-#define BAUDRATE 115200
-#define BUF_SIZE 2048
-#define UART_NUM UART_NUM_1
-#define TX_GPIO 10
-#define RX_GPIO 9
-#define TIMOUT_MS 20
-
 SCCP::SCCP() 
 {
     initialize();
     xTaskCreate(this->receive_loop, "UART_receive_loop", 2048, (void*)this, 1, &SCCP::handle);
+    this->buffer[HEADER_SIZE + DATA_SIZE] = {0};
     SCCP::control_flag = 0;
     this->id = 1;
-    printf("Pointer task1: %p\n", this);
 }
 
 void SCCP::initialize() 
@@ -62,80 +53,84 @@ void SCCP::initialize()
     gpio_set_direction(GPIO_NUM_27, GPIO_MODE_INPUT);
 }
 
-void SCCP::identify() 
+uint8_t SCCP::identify() 
 {
-    std::vector<std::vector<uint8_t>> graph;
-    graph.push_back({255});
+    sccp_packet_t response;
+    uint8_t cab_obj[MEMBERS] = {0};
+    this->graph.clear();
+    this->graph.push_back({255});
+    this->id = 1;
 
     // Identify first cabinet
     gpio_set_level(GPIO_NUM_12, 0);
+
     uint8_t data[] = {this->id};
     send(sccp_packet_t(BROADCAST_ID, ICAB, sizeof(data), data));
 
-    sccp_packet_t response;
-    int r = get_response(&response);
-
-    if(r && response.cmd_id == IACK) 
+    if(get_response(&response) && response.cmd_id == IACK) 
     {
         uint8_t id = response.data[0];
         uint8_t gate = response.data[1];
-        uint8_t type = response.data[2];
 
-        uint8_t t[5] = {0,0,0,0,0};
-        t[gate] = BASE_ID;
-        std::vector<uint8_t> v(t, t + sizeof(t));
-        graph.push_back(v);
+        cab_obj[gate] = BASE_ID;
+        std::vector<uint8_t> cab_vector(cab_obj, cab_obj + sizeof(cab_obj));
+        this->graph.push_back(cab_vector);
         std::fill_n(this->buffer, sizeof(this->buffer), 0);
+        std::fill_n(cab_obj, MEMBERS, 0);
         this->id += 1;
     }
     else 
     {
-        printf("stopped identification: %d\n", r);
-        return;
+        return 0;
     }
 
     gpio_set_level(GPIO_NUM_12, 1);
 
-    uint8_t size = graph.size();
+    uint8_t size = this->graph.size();
 
-    for(uint8_t cab = 1; cab < size; ++cab) 
+    for(uint8_t c = 1; c < size; ++c) 
     {
-        for(uint8_t gate = 0; gate < 4; gate++) 
+        for(uint8_t g = 0; g < 4; g++) 
         {
-            uint8_t neighbour = graph.at(cab).at(gate);
+            uint8_t neighbour = this->graph.at(c).at(g);
 
-            if(neighbour == 0) 
+            if(neighbour != 0) continue;
+
+            uint8_t data[] = {g};
+            send(sccp_packet_t(c, AGAT, sizeof(data), data));
+
+            if(get_response(&response) && response.cmd_id == ACK) 
             {
-                uint8_t data[] = {gate};
-                send(sccp_packet_t(cab, AGAT, sizeof(data), data));
+                uint8_t data2[] = {this->id};
+                send(sccp_packet_t(BROADCAST_ID, ICAB, sizeof(data2), data2));
 
-                if(get_response(&response) && response.cmd_id == ACK) 
+                if(get_response(&response) && response.cmd_id == IACK) 
                 {
-                    uint8_t data2[] = {this->id};
-                    send(sccp_packet_t(BROADCAST_ID, ICAB, sizeof(data2), data2));
+                    uint8_t id = response.data[0];
+                    uint8_t gate = response.data[1];
 
-                    if(get_response(&response) && response.cmd_id == IACK) 
-                    {
-                        uint8_t t[5] = {0,0,0,0,0};
-                        t[response.data[1]] = cab;
-                        std::vector<uint8_t> e(t, t + sizeof(t));
-                        graph.push_back(e);
-                        graph.at(cab).at(gate) = response.data[0];
-                        this->id++;
-                        size++;
-                    }
-
-                    send(sccp_packet_t(cab, DGAT, sizeof(data), data));
-
-                    if(get_response(&response) && response.cmd_id == ACK) 
-                    {
-                    }
+                    cab_obj[gate] = c;
+                    std::vector<uint8_t> cab_vector(cab_obj, cab_obj + sizeof(cab_obj));
+                    this->graph.push_back(cab_vector);
+                    this->graph.at(c).at(g) = id;
+                    std::fill_n(cab_obj, MEMBERS, 0);
+                    this->id++;
+                    size++;
                 }
-                else 
+                else if(response.cmd_id == INACK) 
                 {
-                    //printf("Failed to open gate %d\n", gate);
-                    return;
+                    uint8_t id = response.data[0];
+                    this->graph.at(c).at(g) = id;
                 }
+
+                send(sccp_packet_t(c, DGAT, sizeof(data), data));
+
+                if(!get_response(&response) || response.cmd_id != ACK) return 0;
+            }
+            else 
+            {
+                //printf("Failed to open gate %d\n", gate);
+                return 0;
             }
         }
     }
@@ -158,7 +153,7 @@ void SCCP::identify()
         
     }
     printf("}\n");
-
+    return 1;
 }
 
 void SCCP::send(sccp_packet_t packet) 
@@ -249,7 +244,7 @@ uint8_t SCCP::get_response(sccp_packet_t* response)
     {
         unsigned long time2 = esp_timer_get_time() / 1000ULL;
 
-        if(time2-time1 > 5) return 0;
+        if(time2-time1 > TIMEOUT_MS) return 0;
 
         vTaskDelay(1);
     } 
