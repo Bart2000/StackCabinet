@@ -82,10 +82,9 @@ void SCCP::identify()
         uint8_t type = response.data[2];
 
         uint8_t t[5] = {0,0,0,0,0};
-        t[gate] = 255;
+        t[gate] = BASE_ID;
         std::vector<uint8_t> v(t, t + sizeof(t));
         graph.push_back(v);
-        //printf("%d\n", response.data[1]);
         std::fill_n(this->buffer, sizeof(this->buffer), 0);
         this->id += 1;
     }
@@ -103,37 +102,32 @@ void SCCP::identify()
     {
         for(uint8_t gate = 0; gate < 4; gate++) 
         {
-            printf("cab: %d\ngate: %d\n", cab, gate);
-            int test = graph.at(cab).at(gate);
+            uint8_t neighbour = graph.at(cab).at(gate);
 
-            if(test == 0) 
+            if(neighbour == 0) 
             {
                 uint8_t data[] = {gate};
                 send(sccp_packet_t(cab, AGAT, sizeof(data), data));
 
-                sccp_packet_t response2;
-                if(get_response(&response2) && response2.cmd_id == ACK) 
+                if(get_response(&response) && response.cmd_id == ACK) 
                 {
                     uint8_t data2[] = {this->id};
                     send(sccp_packet_t(BROADCAST_ID, ICAB, sizeof(data2), data2));
-                    sccp_packet_t response3;
 
-                    if(get_response(&response3) && response3.cmd_id == IACK) 
+                    if(get_response(&response) && response.cmd_id == IACK) 
                     {
                         uint8_t t[5] = {0,0,0,0,0};
-                        t[response3.data[1]] = cab;
+                        t[response.data[1]] = cab;
                         std::vector<uint8_t> e(t, t + sizeof(t));
                         graph.push_back(e);
-                        graph.at(cab).at(gate) = response3.data[0];
-                        //printf("There is cab on gate %d\n", gate);
+                        graph.at(cab).at(gate) = response.data[0];
                         this->id++;
                         size++;
                     }
 
-                    sccp_packet_t response4;
                     send(sccp_packet_t(cab, DGAT, sizeof(data), data));
 
-                    if(get_response(&response4) && response4.cmd_id == ACK) 
+                    if(get_response(&response) && response.cmd_id == ACK) 
                     {
                     }
                 }
@@ -142,8 +136,6 @@ void SCCP::identify()
                     //printf("Failed to open gate %d\n", gate);
                     return;
                 }
-                //printf("yes?: %d\n", r);
-                // return;
             }
         }
     }
@@ -203,6 +195,9 @@ void SCCP::handle_command()
 
 void SCCP::decode(uint8_t* data, sccp_packet_t* packet) 
 {
+    // Clear packet data
+    std::fill_n(packet->data, DATA_SIZE, 0);
+
     // Set header
     packet->cab_id = data[0];
     packet->cmd_id = data[1] >> CMD_ID_SHIFT;
