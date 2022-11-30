@@ -7,6 +7,10 @@
 #include <driver/gpio.h>
 #include <driver/uart.h>
 #include <vector>
+#include <iostream>
+#include <algorithm>
+#include <sstream>
+#include <iterator>
 
 #define HEADER_SIZE 2
 #define DATA_SIZE 16
@@ -26,6 +30,7 @@
 #define BAUDRATE 115200
 
 using Graph = std::vector<std::vector<uint8_t>>;
+//using json = nlohmann::json;
 
 class SCCP;
 

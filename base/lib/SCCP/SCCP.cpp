@@ -136,7 +136,7 @@ uint8_t SCCP::identify()
     }
 
     printf("{");
-    for(auto cab = graph.begin(); cab != graph.end(); ++cab) 
+    for(auto cab = this->graph.begin(); cab != this->graph.end(); ++cab) 
     {
         printf("{");
         std::vector<uint8_t> c = *cab;
@@ -148,11 +148,37 @@ uint8_t SCCP::identify()
             else printf("%d, ", *neighbour);
         }
         
-        if(c != graph.back()) printf("}, ");
+        if(c != this->graph.back()) printf("}, ");
         else printf("}");
         
     }
     printf("}\n");
+
+    
+
+    for(auto it = this->graph.at(1).begin(); it != this->graph.at(1).end(); ++it) 
+    {
+        printf("%d\n", *it);
+    }
+    return 0;
+    std::stringstream stream;
+    size_t s = this->graph.size();
+
+    for(size_t i = 0; i < s; i++) 
+    {
+        size_t s2 = this->graph.at(i).size(); 
+
+        stream << "[";
+        for(size_t j = 0; j < s2-1; j++) 
+        {
+            stream << this->graph.at(i).at(j);
+        }
+
+        stream << "]";
+    }
+
+    std::cout << stream.str() << std::endl;
+
     return 1;
 }
 
