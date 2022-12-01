@@ -46,7 +46,9 @@ void app_main()
         if(!gpio_get_level(GPIO_NUM_13)) 
         {
             unsigned long time1 = esp_timer_get_time() / 1000ULL;
-            sccp.identify();
+            std::string grid;
+            sccp.identify(&grid);
+            std::cout << grid;
             printf("Time: %ld\n", (long int)((esp_timer_get_time() / 1000ULL) - time1));
             vTaskDelay(100);
         }

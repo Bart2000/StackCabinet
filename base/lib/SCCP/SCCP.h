@@ -93,7 +93,7 @@ class SCCP
         static TaskHandle_t handle;
         uint8_t control_flag;
         SCCP();
-        uint8_t identify();
+        uint8_t identify(std::string* result);
         void send(sccp_packet_t packet);
         static void receive_loop(void* handle);
         void iack(uint8_t* packet_data);

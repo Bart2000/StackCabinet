@@ -53,28 +53,33 @@ void SCCP::initialize()
     gpio_set_direction(GPIO_NUM_27, GPIO_MODE_INPUT);
 }
 
-uint8_t SCCP::identify() 
+uint8_t SCCP::identify(std::string* result) 
 {
     sccp_packet_t response;
     uint8_t cab_obj[MEMBERS] = {0};
     this->graph.clear();
-    this->graph.push_back({255});
+    this->graph.push_back({255, 1});
     this->id = 1;
 
-    // Identify first cabinet
+    // Pull gate low for first cabinet identification
     gpio_set_level(GPIO_NUM_12, 0);
 
+    // Identify first cabinet with broadcasted ICAB message
     uint8_t data[] = {this->id};
     send(sccp_packet_t(BROADCAST_ID, ICAB, sizeof(data), data));
 
+    // If response is IACK
     if(get_response(&response) && response.cmd_id == IACK) 
     {
         uint8_t id = response.data[0];
         uint8_t gate = response.data[1];
 
+        // Add cabinet to grid
         cab_obj[gate] = BASE_ID;
         std::vector<uint8_t> cab_vector(cab_obj, cab_obj + sizeof(cab_obj));
         this->graph.push_back(cab_vector);
+
+        // Flush buffers
         std::fill_n(this->buffer, sizeof(this->buffer), 0);
         std::fill_n(cab_obj, MEMBERS, 0);
         this->id += 1;
@@ -84,34 +89,44 @@ uint8_t SCCP::identify()
         return 0;
     }
 
+    // Pull gate high
     gpio_set_level(GPIO_NUM_12, 1);
 
     uint8_t size = this->graph.size();
 
+    // Breadth First Search through grid
     for(uint8_t c = 1; c < size; ++c) 
     {
         for(uint8_t g = 0; g < 4; g++) 
         {
             uint8_t neighbour = this->graph.at(c).at(g);
 
+            // Do not process 0's
             if(neighbour != 0) continue;
 
+            // Activate gate with AGAT message
             uint8_t data[] = {g};
             send(sccp_packet_t(c, AGAT, sizeof(data), data));
 
+            // Check if message is received and acknowledged
             if(get_response(&response) && response.cmd_id == ACK) 
             {
+                // Identify cabinet with broadcasted ICAB message
                 uint8_t data2[] = {this->id};
                 send(sccp_packet_t(BROADCAST_ID, ICAB, sizeof(data2), data2));
 
+                // Check if cabinet at gate responded with IACK
                 if(get_response(&response) && response.cmd_id == IACK) 
                 {
                     uint8_t id = response.data[0];
                     uint8_t gate = response.data[1];
 
+                    // Add cabinet to graph
                     cab_obj[gate] = c;
                     std::vector<uint8_t> cab_vector(cab_obj, cab_obj + sizeof(cab_obj));
                     this->graph.push_back(cab_vector);
+
+                    // Update parent cabinet 
                     this->graph.at(c).at(g) = id;
                     std::fill_n(cab_obj, MEMBERS, 0);
                     this->id++;
@@ -120,64 +135,50 @@ uint8_t SCCP::identify()
                 else if(response.cmd_id == INACK) 
                 {
                     uint8_t id = response.data[0];
+                    uint8_t gate = response.data[1];
+
+                    // Update graph accordingly if cabinet already identified
                     this->graph.at(c).at(g) = id;
+                    this->graph.at(id).at(gate) = c;
                 }
 
+                // Deactivate gate
                 send(sccp_packet_t(c, DGAT, sizeof(data), data));
 
+                // Stop identification process if gate is not closed
                 if(!get_response(&response) || response.cmd_id != ACK) return 0;
             }
             else 
             {
-                //printf("Failed to open gate %d\n", gate);
+                // Stop identification if gate is not opened
                 return 0;
             }
         }
     }
 
-    printf("{");
-    for(auto cab = this->graph.begin(); cab != this->graph.end(); ++cab) 
-    {
-        printf("{");
-        std::vector<uint8_t> c = *cab;
-        
-        for(auto neighbour = c.begin(); neighbour != c.end(); ++neighbour) 
-        {
-            if(&*neighbour == &c.back()) printf("%d", *neighbour);
-            else if(&*neighbour != &c.back() || *neighbour == 0) printf("%d, ", *neighbour);
-            else printf("%d, ", *neighbour);
-        }
-        
-        if(c != this->graph.back()) printf("}, ");
-        else printf("}");
-        
-    }
-    printf("}\n");
-
-    
-
-    for(auto it = this->graph.at(1).begin(); it != this->graph.at(1).end(); ++it) 
-    {
-        printf("%d\n", *it);
-    }
-    return 0;
     std::stringstream stream;
     size_t s = this->graph.size();
 
+    // Construct JSON string
+    stream << "[";
     for(size_t i = 0; i < s; i++) 
     {
-        size_t s2 = this->graph.at(i).size(); 
-
+        size_t s2 = this->graph.at(i).size();
         stream << "[";
-        for(size_t j = 0; j < s2-1; j++) 
+
+        // Loop through neighbours
+        for(size_t j = 0; j < s2; j++) 
         {
-            stream << this->graph.at(i).at(j);
+            stream << (int) this->graph.at(i).at(j) << ", ";
         }
-
-        stream << "]";
+        stream.seekp(-2, std::ios_base::end);
+        stream << "], ";
     }
+    stream.seekp(-2, std::ios_base::end);
+    stream << "]";
 
-    std::cout << stream.str() << std::endl;
+    // Update string with result
+    *result = stream.str();
 
     return 1;
 }

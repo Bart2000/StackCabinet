@@ -142,18 +142,19 @@ void SCCP::icab(uint8_t* packet_data)
 
     // Check if gate is activated and no gate is configured as output
     if(!gates || PORTC.OUT & GATES) return;
+    
+    uint8_t gate = log(gates) / log(2);
 
     // Check if id has not been assigned yet
     if(!id) 
     {
         this->id = packet_data[0];
-        uint8_t gate = log(gates) / log(2);
         uint8_t data[] = {this->id, gate, this->cab_type};
         send(sccp_packet_t(BASE_ID, IACK, sizeof(data), data));
     }
     else 
     {
-        uint8_t data[] = {id};
+        uint8_t data[] = {this->id, gate};
         send(sccp_packet_t(BASE_ID, INACK, sizeof(data), data));
     }
 }
