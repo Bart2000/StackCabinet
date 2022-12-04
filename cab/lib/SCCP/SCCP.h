@@ -11,8 +11,11 @@
 #define DATA_SIZE 16
 #define CMD_ID_SHIFT 4
 #define DATA_LEN_MASK 0x0F
-#define GATE_PORT PORTC
-#define GATES (PIN0_bm | PIN1_bm | PIN2_bm | PIN3_bm)
+#define GATE0 PIN1_bm
+#define GATE1 PIN2_bm
+#define GATE2 PIN6_bm
+#define GATE3 PIN7_bm
+#define GATES (GATE0 | GATE1 | GATE2 | GATE3)
 #define BASE_ID 255
 
 #define F_CPU 3333333
@@ -87,6 +90,7 @@ class SCCP
         void inack(uint8_t* packet_data);
         void ocab(uint8_t* packet_data);
         void sled(uint8_t* packet_data);
+        uint8_t get_gate(uint8_t input);
 
     private:
         uint8_t buffer[HEADER_SIZE + DATA_SIZE];
@@ -101,6 +105,7 @@ class SCCP
         void reset_tx();
         uint8_t tx_ready();
         void tmp_led(uint8_t n);
+        
 };
 
 #endif

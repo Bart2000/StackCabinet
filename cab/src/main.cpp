@@ -15,21 +15,29 @@ int main(void) {
     setup();
     sccp.init();
 
-    while(1);
+    while(1) 
+    {
+        uint8_t gates = PORTA.IN & GATES;
+        uint8_t gate = sccp.get_gate(gates);
+        char buff[8];
+        sprintf(buff, "%d\n", gate);
+        uint8_t length = strlen(buff);
+        for(uint8_t i = 0; i < length; i++) 
+        {
+            USART0.TXDATAL = buff[i];
+        }
+        _delay_ms(500);
+    }
 }
 
 void setup() 
 {
-    // Set PA7 as output
-    PORTA.DIR = PIN7_bm;
-    PORTA.OUT |= PIN7_bm;
-
     // Set all gates as inputs and enable pullups with inverted logic
-    PORTC.DIRCLR = GATES; 
-    PORTC.PIN0CTRL |= PORT_INVEN_bm | PORT_PULLUPEN_bm;
-    PORTC.PIN1CTRL |= PORT_INVEN_bm | PORT_PULLUPEN_bm;
-    PORTC.PIN2CTRL |= PORT_INVEN_bm | PORT_PULLUPEN_bm;
-    PORTC.PIN3CTRL |= PORT_INVEN_bm | PORT_PULLUPEN_bm;
+    PORTA.DIRCLR = GATES; 
+    PORTA.PIN1CTRL |= PORT_INVEN_bm | PORT_PULLUPEN_bm;
+    PORTA.PIN2CTRL |= PORT_INVEN_bm | PORT_PULLUPEN_bm;
+    PORTA.PIN6CTRL |= PORT_INVEN_bm | PORT_PULLUPEN_bm;
+    PORTA.PIN7CTRL |= PORT_INVEN_bm | PORT_PULLUPEN_bm;
 
     // Enable global interrupts
     SREG |= CPU_I_bm;

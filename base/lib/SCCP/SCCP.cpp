@@ -48,9 +48,12 @@ void SCCP::initialize()
 
     //uart_driver_install(UART_NUM_1, 256, 256, 0, NULL, 0);
     gpio_set_direction(GPIO_NUM_13, GPIO_MODE_INPUT);
-    gpio_set_direction(GPIO_NUM_12, GPIO_MODE_INPUT);
     gpio_set_direction(GPIO_NUM_14, GPIO_MODE_INPUT);
     gpio_set_direction(GPIO_NUM_27, GPIO_MODE_INPUT);
+
+    gpio_set_direction(GPIO_NUM_12, GPIO_MODE_INPUT);
+
+    //gpio_set_level(GPIO_NUM_12, 0);
 }
 
 uint8_t SCCP::identify(std::string* result) 

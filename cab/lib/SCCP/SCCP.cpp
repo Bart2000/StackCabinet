@@ -11,6 +11,8 @@ sccp_command_t commands[] = {
     {&SCCP::sled, 100},
 };
 
+uint8_t gate_map[] = {GATE0, GATE1, GATE2, GATE3};
+
 /**
  * Default constructor for SCCP class. Initializes properties to prevent inderterminacy. 
  */ 
@@ -103,8 +105,8 @@ void SCCP::agat(uint8_t* packet_data)
     if(gate >= 4) return;
     
     // Pull gate low
-    PORTC.DIRSET |= 1 << gate;
-    PORTC.OUT |= 1 << gate;
+    PORTA.DIRSET |= 1 << gate_map[gate];
+    PORTA.OUT |= 1 << gate_map[gate];
 
     // Send ACK
     uint8_t data[] = {id, AGAT};
@@ -124,7 +126,7 @@ void SCCP::dgat(uint8_t* packet_data)
     if(gate >= 4) return;
 
     // Set gate as input again
-    PORTC.DIRCLR |= 1 << gate;
+    PORTA.DIRCLR |= 1 << gate_map[gate];
 
     // Send ACK
     uint8_t data[] = {id, DGAT};
@@ -137,13 +139,14 @@ void SCCP::dgat(uint8_t* packet_data)
  */ 
 void SCCP::icab(uint8_t* packet_data) 
 {
-    // Get activated gates
-    uint8_t gates = PORTC.IN & GATES;
+    // Get activated gate states
+    uint8_t gates = PORTA.IN & GATES;
 
     // Check if gate is activated and no gate is configured as output
-    if(!gates || PORTC.OUT & GATES) return;
+    if(!gates || PORTA.OUT & GATES) return;
     
-    uint8_t gate = log(gates) / log(2);
+    uint8_t gate = get_gate(gates);
+    //uint8_t gate = log(gates) / log(2);
 
     // Check if id has not been assigned yet
     if(!id) 
@@ -284,6 +287,17 @@ void SCCP::reset_tx()
 uint8_t SCCP::tx_ready() 
 {
     return USART0.STATUS & USART_DREIF_bm;
+}
+
+/**
+ * Method to derive the activated gate from agiven input
+ */ 
+uint8_t SCCP::get_gate(uint8_t input)  
+{    
+    for(uint8_t i = 0; i < 4; i++) 
+    {
+        if(gate_map[i] & input) return i;
+    }
 }
 
 /**
