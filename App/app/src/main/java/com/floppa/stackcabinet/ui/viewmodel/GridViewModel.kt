@@ -2,6 +2,7 @@ package com.floppa.stackcabinet.ui.viewmodel
 
 import android.bluetooth.BluetoothDevice
 import android.content.Context
+import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -13,7 +14,9 @@ import com.floppa.stackcabinet.repository.DatabaseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,12 +35,18 @@ sealed class ViewStateListComponents {
     data class Problem(val exception: ProblemState?) : ViewStateListComponents()
 }
 
+data class UiState(
+    val currentOffset: Offset = Offset.Zero,
+    val currentZoom: Float = 1f
+)
+
 @HiltViewModel
 class GridViewModel
 @Inject constructor(
     @ApplicationContext appContext: Context,
     private val componentsRepository: DatabaseRepository,
 ) : ViewModel() {
+
     private val repository = BluetoothRepository(appContext)
     private val gridRepository = GridRepository()
 
@@ -47,12 +56,12 @@ class GridViewModel
     private val _viewStateListComponents = MutableStateFlow<ViewStateListComponents>(ViewStateListComponents.Loading)
     val componentsViewState = _viewStateListComponents.asStateFlow()
 
-    private val _connectionState = MutableLiveData(repository.isConnected)
-    val connectionState: LiveData<Boolean>
-        get() = _connectionState
+    private val _connectionState = MutableStateFlow(repository.isConnected)
+    val connectionState: StateFlow<Boolean> = _connectionState
 
-
-//    val centerLiveData = MutableLiveData<List<Int>>()
+    // UI state
+    private val _uiState = MutableStateFlow(UiState())
+    val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
 
     fun getPairedBase(): BluetoothDevice? {
@@ -73,6 +82,7 @@ class GridViewModel
 
     /**
      * Request the grid from the ESP
+     * @param command the command you want to send
      */
     fun makeCall(command: Commands) {
         writeData(command)
@@ -139,6 +149,17 @@ class GridViewModel
         viewModelScope.launch {
             componentsRepository.updateComponent(component)
             getComponents()
+        }
+    }
+
+    /**
+     * Store the state of the UI in the [UiState] class
+     * @param offset the new offset
+     * @param zoom the new zoom
+     */
+    fun updateUiState(offset: Offset, zoom: Float) {
+        _uiState.update{
+            UiState(offset,zoom)
         }
     }
 }

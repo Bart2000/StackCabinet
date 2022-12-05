@@ -11,7 +11,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -34,8 +33,6 @@ fun GridCompose(
     viewModel: GridViewModel,
     lifeCycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
 ) {
-    var offset by remember { mutableStateOf(Offset.Zero) }
-    var zoom by remember { mutableStateOf(1f) }
 
     val graph1 = arrayOf(
         intArrayOf(1),
@@ -75,34 +72,33 @@ fun GridCompose(
 
 
     InitScaffold(viewModel, navController) {
+        val uiState by viewModel.uiState.collectAsState()
         Box(
             Modifier
                 .pointerInput(Unit) {
-                    detectTransformGestures(
-                        onGesture = { centroid, pan, gestureZoom, _ ->
-                            val oldScale = zoom
-                            val newScale = zoom * gestureZoom
-                            offset =
-                                (offset + centroid / oldScale) - (centroid / newScale + pan / oldScale)
-                            zoom = newScale
-                        }
-                    )
+                    detectTransformGestures { centroid, pan, gestureZoom, _ ->
+                        val oldScale = uiState.currentZoom
+                        val newScale = uiState.currentZoom * gestureZoom
+                        val newOffset =
+                            (uiState.currentOffset + (centroid / oldScale)) - ((centroid / newScale) + (pan / oldScale))
+                        viewModel.updateUiState(newOffset, newScale)
+                    }
                 }
                 .graphicsLayer {
-                    translationX = -offset.x * zoom
-                    translationY = -offset.y * zoom
-                    scaleX = zoom
-                    scaleY = zoom
+                    translationX = - uiState.currentOffset.x * uiState.currentZoom
+                    translationY = - uiState.currentOffset.y * uiState.currentZoom
+                    scaleX = uiState.currentZoom
+                    scaleY = uiState.currentZoom
                     transformOrigin = TransformOrigin(0f, 0f)
                 }
                 .fillMaxSize(),
-    Alignment.Center
+            Alignment.Center
         ) {
             when (val result = viewModel.gridViewState.collectAsState().value) {
                 ViewStateGrid.Loading -> println("LOADING")
                 is ViewStateGrid.Success -> DrawGrid(result.grid)
-                ViewStateGrid.Disconnected -> TODO()
-                is ViewStateGrid.Problem -> TODO()
+//                ViewStateGrid.Disconnected -> TODO()
+//                is ViewStateGrid.Problem -> TODO()
             }
         }
     }
@@ -111,13 +107,13 @@ fun GridCompose(
 @Composable
 fun DrawGrid(grid: List<Cabinet>?) {
     grid?.forEach {
-        CabinetCompose(borderColor = Color.Red,
-            backgroundColor = Color.Blue,
+        CabinetCompose(borderColor = it.cabinetColor,
+            backgroundColor = it.ledColor,
             x = it.x,
             y = it.y,
-            onClick = { println("${it.id}, ${it.isBase}") },
-            onLongClink = { /*TODO*/ }) {
-
+            onClick = { println( "Show part: ${it.id}, ${it.isBase}") },
+            onLongClink = { println("Edit") },
+            onDoubleClick = { println("Open Cabinet") }) {
         }
     }
 }

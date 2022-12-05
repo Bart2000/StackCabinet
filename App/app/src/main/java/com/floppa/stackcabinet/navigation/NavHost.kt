@@ -18,12 +18,14 @@ import com.floppa.stackcabinet.ui.BootCompose
 import com.floppa.stackcabinet.ui.ComponentsCompose
 import com.floppa.stackcabinet.ui.GridCompose
 import com.floppa.stackcabinet.ui.SetupCompose
+import com.floppa.stackcabinet.ui.viewmodel.GridViewModel
 import com.floppa.stackcabinet.ui.viewmodel.SetupViewModel
 
 @Composable
 fun CompanionNavHost() {
     val navController = rememberNavController()
     val context = LocalContext.current
+    val viewModel: GridViewModel = hiltViewModel()
     NavHost(
         navController = navController,
         startDestination = Screens.Boot.route
@@ -60,7 +62,7 @@ fun CompanionNavHost() {
                 Column(modifier = Modifier.padding(it)) {
                     GridCompose(
                         navController = navController,
-                        viewModel = hiltViewModel())
+                        viewModel = viewModel)
                 }
             }
         }
@@ -70,7 +72,7 @@ fun CompanionNavHost() {
                 Column(modifier = Modifier.padding(it)) {
                     ComponentsCompose(
                         navController = navController,
-                        viewModel = hiltViewModel())
+                        viewModel = viewModel)
                 }
             }
         }

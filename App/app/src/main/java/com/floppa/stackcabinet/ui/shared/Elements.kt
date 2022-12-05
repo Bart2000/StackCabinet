@@ -41,23 +41,25 @@ fun Modifier.place(x: Int, y: Int) = layout { measurable, constraints ->
 @Composable
 fun PreviewCabinetCompose() {
     CabinetCompose(borderColor = Color.Magenta,
-        backgroundColor = null,
+        backgroundColor = Color.Red,
         x = 10,
         y = 10,
         onClick = { println("click") },
-        onLongClink = { println(" Long click") }) {
+        onLongClink = { println(" Long click") },
+        onDoubleClick = { println(" Double click") }) {
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CabinetCompose(
-    borderColor: Color?,
-    backgroundColor: Color?,
+    borderColor: Color,
+    backgroundColor: Color,
     x: Int,
     y: Int,
     onClick: () -> Unit,
     onLongClink: () -> Unit,
+    onDoubleClick: () -> Unit,
     content: @Composable () -> Unit,
 ) {
     Box(Modifier
@@ -67,15 +69,16 @@ fun CabinetCompose(
             modifier = Modifier
                 .size(100.dp)
                 .clip(RoundedCornerShape(20.dp))
-                .background(backgroundColor ?: Color.Transparent)
+                .background(backgroundColor)
                 .border(
-                    7.dp,
-                    Color.Red,
+                    width = 7.dp,
+                    color = borderColor,
                     shape = RoundedCornerShape(20.dp),
                 )
                 .combinedClickable(
                     onClick = { onClick() },
-                    onLongClick = { onLongClink() }
+                    onLongClick = { onLongClink() },
+                    onDoubleClick = { onDoubleClick() }
                 )
         ) {
             CenterElement {

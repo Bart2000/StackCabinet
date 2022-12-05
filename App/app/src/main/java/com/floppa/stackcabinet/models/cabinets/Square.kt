@@ -21,7 +21,7 @@ class Square : Cabinet() {
     override fun toString(): String {
 
         val builder = StringBuilder()
-        builder.append("Square: id: $id\n")
+        builder.append("Square: id: $id, X: $x, Y: $y")
         adjacent?.forEach {
             builder.append(it?.id)
         }
