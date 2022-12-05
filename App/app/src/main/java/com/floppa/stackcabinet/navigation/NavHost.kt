@@ -9,15 +9,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.floppa.stackcabinet.R
 import com.floppa.stackcabinet.ui.BootCompose
+import com.floppa.stackcabinet.ui.ComponentsCompose
 import com.floppa.stackcabinet.ui.GridCompose
 import com.floppa.stackcabinet.ui.SetupCompose
-import com.floppa.stackcabinet.ui.viewmodel.BootViewModel
-import com.floppa.stackcabinet.ui.viewmodel.GridViewModel
 import com.floppa.stackcabinet.ui.viewmodel.SetupViewModel
 
 @Composable
@@ -34,7 +34,7 @@ fun CompanionNavHost() {
                 Column(modifier = Modifier.padding(it)) {
                     BootCompose(
                         navController = navController,
-                        viewModel = BootViewModel(context))
+                        context = LocalContext.current)
                 }
             }
         }
@@ -60,7 +60,17 @@ fun CompanionNavHost() {
                 Column(modifier = Modifier.padding(it)) {
                     GridCompose(
                         navController = navController,
-                        viewModel = GridViewModel(context))
+                        viewModel = hiltViewModel())
+                }
+            }
+        }
+
+        composable(Screens.Components.route) {
+            Scaffold {
+                Column(modifier = Modifier.padding(it)) {
+                    ComponentsCompose(
+                        navController = navController,
+                        viewModel = hiltViewModel())
                 }
             }
         }

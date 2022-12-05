@@ -18,6 +18,9 @@ import java.io.OutputStream
 import java.nio.charset.StandardCharsets
 import java.util.*
 
+const val MESSAGE_READ: Int = 0
+const val MESSAGE_WRITE: Int = 1
+const val MESSAGE_TOAST: Int = 2
 
 @SuppressLint("MissingPermission")
 class BluetoothRepository(private val context: Context) {
@@ -26,6 +29,9 @@ class BluetoothRepository(private val context: Context) {
      */
     private val bluetoothManager: BluetoothManager = context.getSystemService(BluetoothManager::class.java)
     val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
+
+    var isConnected = false
+    var isStreaming = false
 
     /**
      * Get a [Set] of paired devices ([BluetoothDevice]) to the phone
@@ -122,17 +128,19 @@ class BluetoothRepository(private val context: Context) {
     /**
      * open a connection with the [ConnectThread] and run the Thread
      */
-    fun startClient(device: BluetoothDevice?) {
-        Log.d(TAG, "startClient: Started.")
+    fun startConnection(device: BluetoothDevice?) {
+//        Log.d(TAG, "startClient: Started.")
         device?.let { ConnectThread(it) }?.start()
     }
 
     /**
      * Close the connection that is made with the [ConnectThread]
      */
-    fun stopClient(device: BluetoothDevice?) {
+    fun stopConnection(device: BluetoothDevice?) {
         if (device != null) {
+            closeStream()
             ConnectThread(device).cancel()
+
         }
     }
 
@@ -147,17 +155,17 @@ class BluetoothRepository(private val context: Context) {
     }
 
     /**
+     * Close the stream of [ConnectedThread]
+     */
+    private fun closeStream() {
+        socket?.let { ConnectedThread(it) }?.cancel()
+    }
+
+    /**
      * Write a [ByteArray] to the [OutputStream] of [ConnectedThread]
      */
     fun writeToStream(bytes: ByteArray){
         socket?.let { ConnectedThread(it) }?.write(bytes)
-    }
-
-    /**
-     * Close the stream of [ConnectedThread]
-     */
-    fun closeStream() {
-        socket?.let { ConnectedThread(it) }?.cancel()
     }
 
     /**
@@ -179,10 +187,15 @@ class BluetoothRepository(private val context: Context) {
             mmSocket?.let { socket ->
                 // Connect to the remote device through the socket. This call blocks
                 // until it succeeds or throws an exception.
-                Log.i("ConnectThread", "connecting to Socket")
-                socket.connect()
+//                Log.i("ConnectThread", "connecting to Socket")
+                try {
+                    socket.connect()
+                    startStream(socket)
+                    isConnected = true
+                } catch (e: Exception){
+                    Log.e("ConnectThread", e.toString())
+                }
 
-                startStream(socket)
             }
         }
 
@@ -207,26 +220,28 @@ class BluetoothRepository(private val context: Context) {
 
         private val mmInStream: InputStream = mmSocket.inputStream
         private val mmOutStream: OutputStream = mmSocket.outputStream
-        private val mmBuffer: ByteArray = ByteArray(256) // mmBuffer store for the stream
+        private var mmBuffer: ByteArray = ByteArray(32) // mmBuffer store for the stream
 
         override fun run() {
-
+            var numBytes: Int // bytes returned from read()
             // Keep listening to the InputStream until an exception occurs.
             while (true) {
                 // Read from the InputStream.
-                try {
+                numBytes = try {
                     mmInStream.read(mmBuffer)
+
                 } catch (e: IOException) {
                     Log.d(TAG, "Input stream was disconnected", e)
                     break
                 }
                 val s = String(mmBuffer, StandardCharsets.UTF_8)
                 println(mmBuffer)
-                println(s)
+                println(numBytes)
+                println(s.take(numBytes))
 
                 // Send the obtained bytes to the UI activity.
 //                val readMsg = handler.obtainMessage(
-//                    Companion.MESSAGE_READ, numBytes, -1,
+//                    MESSAGE_READ, numBytes, -1,
 //                    mmBuffer)
 //                readMsg.sendToTarget()
             }

@@ -2,6 +2,7 @@ package com.floppa.stackcabinet.ui
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -36,7 +37,7 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun BootCompose(navController: NavHostController, viewModel: BootViewModel) {
+fun BootCompose(navController: NavHostController, context: Context) {
 
     val activity = (LocalContext.current as? Activity)
 
@@ -85,8 +86,9 @@ fun BootCompose(navController: NavHostController, viewModel: BootViewModel) {
     /**
      * Check if the devices has
      */
-    if (viewModel.bluetoothAvailable()) {
-        if (listPermissions.allPermissionsGranted) {
+    if (listPermissions.allPermissionsGranted) {
+        val viewModel = BootViewModel(context = context)
+        if (viewModel.bluetoothAvailable()) {
             if (viewModel.isPaired()) {
                 LaunchedEffect(Unit) {
                     navController.navigate(Screens.Grid.route) {
@@ -102,7 +104,7 @@ fun BootCompose(navController: NavHostController, viewModel: BootViewModel) {
             }
         }
     } else {
-        ShowDialogTargetNotSupported{
+        ShowDialogTargetNotSupported {
             activity?.finish()
         }
     }
