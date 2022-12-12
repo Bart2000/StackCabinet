@@ -102,11 +102,12 @@ void SCCP::agat(uint8_t* packet_data)
     uint8_t gate = packet_data[0];
 
     // Check if gate is out of bounds
+
     if(gate >= 4) return;
     
     // Pull gate low
-    PORTA.DIRSET |= 1 << gate_map[gate];
-    PORTA.OUT |= 1 << gate_map[gate];
+    PORTA.DIRSET = gate_map[gate];
+    PORTA.OUT |= gate_map[gate];
 
     // Send ACK
     uint8_t data[] = {id, AGAT};
@@ -126,7 +127,7 @@ void SCCP::dgat(uint8_t* packet_data)
     if(gate >= 4) return;
 
     // Set gate as input again
-    PORTA.DIRCLR |= 1 << gate_map[gate];
+    PORTA.DIRCLR |= gate_map[gate];
 
     // Send ACK
     uint8_t data[] = {id, DGAT};
@@ -307,9 +308,9 @@ void SCCP::tmp_led(uint8_t n)
 {
     for(uint8_t i = 0; i < n; i++)
     {
-        PORTA.OUT &= ~PIN7_bm;
+        PORTB.OUT &= ~PIN5_bm;
         _delay_ms(100);
-        PORTA.OUT |= PIN7_bm;
+        PORTB.OUT |= PIN5_bm;
         _delay_ms(100);
     }
 }

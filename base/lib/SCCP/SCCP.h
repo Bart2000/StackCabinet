@@ -24,7 +24,7 @@
 #define UART_NUM UART_NUM_1
 #define TX_GPIO 10
 #define RX_GPIO 9
-#define TIMEOUT_MS 5
+#define TIMEOUT_MS 10
 #define MEMBERS 6
 
 #define BAUDRATE 115200

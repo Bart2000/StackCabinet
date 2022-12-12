@@ -15,23 +15,26 @@ int main(void) {
     setup();
     sccp.init();
 
-    while(1) 
-    {
-        uint8_t gates = PORTA.IN & GATES;
-        uint8_t gate = sccp.get_gate(gates);
-        char buff[8];
-        sprintf(buff, "%d\n", gate);
-        uint8_t length = strlen(buff);
-        for(uint8_t i = 0; i < length; i++) 
-        {
-            USART0.TXDATAL = buff[i];
-        }
-        _delay_ms(500);
-    }
+    while(1);
+    // while(1) 
+    // {
+    //     uint8_t gates = PORTA.IN & GATES;
+    //     uint8_t gate = sccp.get_gate(gates);
+    //     char buff[8];
+    //     sprintf(buff, "%d\n", gate);
+    //     uint8_t length = strlen(buff);
+    //     for(uint8_t i = 0; i < length; i++) 
+    //     {
+    //         USART0.TXDATAL = buff[i];
+    //     }
+    //     _delay_ms(500);
+    // }
 }
 
 void setup() 
 {
+    PORTB.DIR |= PIN5_bm;
+
     // Set all gates as inputs and enable pullups with inverted logic
     PORTA.DIRCLR = GATES; 
     PORTA.PIN1CTRL |= PORT_INVEN_bm | PORT_PULLUPEN_bm;

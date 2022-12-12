@@ -30,20 +30,9 @@ extern "C"
 
 void app_main() 
 {   
-    uint8_t packets[][3] = {
-        {0x00, 0x21, 0x01}, // ICAB
-        {0x01, 0x01, 0x00}, // AGAT
-        {0x00, 0x21, 0x02}, // ICAB
-        {0x01, 0x11, 0x00}, // DGAT
-    };    
-    
-    uint8_t count = 0;
-
-    gpio_set_level(GPIO_NUM_12, 0);
-
     while(1) 
     {
-        if(!gpio_get_level(GPIO_NUM_13)) 
+        if(!gpio_get_level(GPIO_NUM_14)) 
         {
             unsigned long time1 = esp_timer_get_time() / 1000ULL;
             std::string grid;

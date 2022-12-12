@@ -47,13 +47,11 @@ void SCCP::initialize()
     uart_driver_install(UART_NUM, BUF_SIZE, BUF_SIZE, 20, &SCCP::uart_queue, 0);
 
     //uart_driver_install(UART_NUM_1, 256, 256, 0, NULL, 0);
-    gpio_set_direction(GPIO_NUM_13, GPIO_MODE_INPUT);
     gpio_set_direction(GPIO_NUM_14, GPIO_MODE_INPUT);
+    gpio_set_direction(GPIO_NUM_32, GPIO_MODE_OUTPUT);
     gpio_set_direction(GPIO_NUM_27, GPIO_MODE_INPUT);
 
-    gpio_set_direction(GPIO_NUM_12, GPIO_MODE_INPUT);
-
-    //gpio_set_level(GPIO_NUM_12, 0);
+    gpio_set_level(GPIO_NUM_32, 1);
 }
 
 uint8_t SCCP::identify(std::string* result) 
@@ -65,10 +63,13 @@ uint8_t SCCP::identify(std::string* result)
     this->id = 1;
 
     // Pull gate low for first cabinet identification
-    gpio_set_level(GPIO_NUM_12, 0);
+    gpio_set_level(GPIO_NUM_32, 0);
+
+    vTaskDelay(10);
 
     // Identify first cabinet with broadcasted ICAB message
     uint8_t data[] = {this->id};
+    printf("bruh1\n");
     send(sccp_packet_t(BROADCAST_ID, ICAB, sizeof(data), data));
 
     // If response is IACK
@@ -89,11 +90,12 @@ uint8_t SCCP::identify(std::string* result)
     }
     else 
     {
+        gpio_set_level(GPIO_NUM_32, 1);
         return 0;
     }
 
     // Pull gate high
-    gpio_set_level(GPIO_NUM_12, 1);
+    gpio_set_level(GPIO_NUM_32, 1);
 
     uint8_t size = this->graph.size();
 
@@ -110,6 +112,7 @@ uint8_t SCCP::identify(std::string* result)
             // Activate gate with AGAT message
             uint8_t data[] = {g};
             send(sccp_packet_t(c, AGAT, sizeof(data), data));
+            vTaskDelay(1);
 
             // Check if message is received and acknowledged
             if(get_response(&response) && response.cmd_id == ACK) 
@@ -193,8 +196,9 @@ void SCCP::send(sccp_packet_t packet)
     uint8_t data[packet_length] = {0};
 
     encode(data, &packet);
-
+    uart_disable_rx_intr(UART_NUM);
     uart_write_bytes(UART_NUM_1, (const  char*)data, sizeof(data));
+    uart_enable_rx_intr(UART_NUM);
 }
 
 void SCCP::encode(uint8_t* data, sccp_packet_t* packet) 
