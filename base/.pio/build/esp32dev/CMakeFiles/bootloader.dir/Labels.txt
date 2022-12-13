@@ -1,0 +1,13 @@
+# Target labels
+ bootloader
+# Source files and their labels
+/home/bart/Repos/StackCabinet/base/.pio/build/esp32dev/CMakeFiles/bootloader
+/home/bart/Repos/StackCabinet/base/.pio/build/esp32dev/CMakeFiles/bootloader.rule
+/home/bart/Repos/StackCabinet/base/.pio/build/esp32dev/CMakeFiles/bootloader-complete.rule
+/home/bart/Repos/StackCabinet/base/.pio/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+/home/bart/Repos/StackCabinet/base/.pio/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+/home/bart/Repos/StackCabinet/base/.pio/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+/home/bart/Repos/StackCabinet/base/.pio/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule
+/home/bart/Repos/StackCabinet/base/.pio/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+/home/bart/Repos/StackCabinet/base/.pio/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+/home/bart/Repos/StackCabinet/base/.pio/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
