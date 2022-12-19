@@ -1,3 +1,4 @@
 (fp_lib_table
   (lib (name "Espressif")(type "KiCad")(uri "/home/bart/Documents/KiCad/testboard/Espressif.pretty")(options "")(descr ""))
+  (lib (name "StackCabinet")(type "KiCad")(uri "/home/bart/Downloads/StackCabinet.pretty")(options "")(descr ""))
 )
