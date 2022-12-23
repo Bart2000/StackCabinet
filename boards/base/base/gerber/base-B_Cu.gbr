@@ -1,12 +1,12 @@
 %TF.GenerationSoftware,KiCad,Pcbnew,6.0.6-3a73a75311~116~ubuntu20.04.1*%
-%TF.CreationDate,2022-12-23T12:38:23+01:00*%
+%TF.CreationDate,2022-12-23T18:10:38+01:00*%
 %TF.ProjectId,base,62617365-2e6b-4696-9361-645f70636258,rev?*%
 %TF.SameCoordinates,Original*%
 %TF.FileFunction,Copper,L2,Bot*%
 %TF.FilePolarity,Positive*%
 %FSLAX46Y46*%
 G04 Gerber Fmt 4.6, Leading zero omitted, Abs format (unit mm)*
-G04 Created by KiCad (PCBNEW 6.0.6-3a73a75311~116~ubuntu20.04.1) date 2022-12-23 12:38:23*
+G04 Created by KiCad (PCBNEW 6.0.6-3a73a75311~116~ubuntu20.04.1) date 2022-12-23 18:10:38*
 %MOMM*%
 %LPD*%
 G01*
@@ -92,7 +92,7 @@ D12*
 X132207000Y-90805000D03*
 D13*
 %TO.P,J5,2,Pin_2*%
-%TO.N,Net-(J5-Pad2)*%
+%TO.N,Din*%
 X129667000Y-90805000D03*
 %TO.P,J5,3,Pin_3*%
 %TO.N,5V*%
@@ -296,16 +296,16 @@ X110416560Y-110050000D03*
 %TO.N,unconnected-(U2-Pad26)*%
 X107876560Y-110050000D03*
 %TO.P,U2,27,GPIO21*%
-%TO.N,CAB_EN*%
+%TO.N,unconnected-(U2-Pad27)*%
 X105336560Y-110050000D03*
 %TO.P,U2,28,GPIO47*%
-%TO.N,Din*%
+%TO.N,unconnected-(U2-Pad28)*%
 X102796560Y-110050000D03*
 %TO.P,U2,29,GPIO48*%
-%TO.N,unconnected-(U2-Pad29)*%
+%TO.N,CAB_EN*%
 X100256560Y-110050000D03*
 %TO.P,U2,30,GPIO45*%
-%TO.N,unconnected-(U2-Pad30)*%
+%TO.N,Din*%
 X97716560Y-110050000D03*
 %TO.P,U2,31,GPIO0*%
 %TO.N,unconnected-(U2-Pad31)*%
