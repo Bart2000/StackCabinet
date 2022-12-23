@@ -2,30 +2,40 @@
 #define SCCP_H
 
 #include <stdint.h>
-#include <avr/io.h>
 #include <stdlib.h>
-#include <avr/delay.h>
 #include <string.h>
+#include <driver/gpio.h>
+#include <driver/uart.h>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+#include <sstream>
+#include <iterator>
 
 #define HEADER_SIZE 2
 #define DATA_SIZE 16
 #define CMD_ID_SHIFT 4
 #define DATA_LEN_MASK 0x0F
-#define GATE0 PIN1_bm
-#define GATE1 PIN2_bm
-#define GATE2 PIN6_bm
-#define GATE3 PIN7_bm
-#define GATES (GATE0 | GATE1 | GATE2 | GATE3)
 #define BASE_ID 255
-
-#define F_CPU 3333333
+#define GATE GPIO_NUM_12
+#define BROADCAST_ID 0
 #define BAUDRATE 115200
-#define USART0_BAUD_RATE(BAUD_RATE) ((float)(F_CPU * 64 / (16 * (float)BAUD_RATE)) + 0.5)
+#define BUF_SIZE 2048
+#define UART_NUM UART_NUM_1
+#define TX_GPIO 10
+#define RX_GPIO 9
+#define TIMEOUT_MS 10
+#define MEMBERS 6
+
+#define BAUDRATE 115200
+
+using Graph = std::vector<std::vector<uint8_t>>;
+//using json = nlohmann::json;
 
 class SCCP;
 
 // SCCP commands
-enum Commands {
+enum Command {
     AGAT,
     DGAT,
     ICAB,
@@ -79,33 +89,26 @@ typedef struct sccp_command
 class SCCP 
 {
     public: 
+        static QueueHandle_t uart_queue;
+        static TaskHandle_t handle;
+        uint8_t control_flag;
         SCCP();
-        void init();
+        uint8_t identify(std::string* result);
         void send(sccp_packet_t packet);
-        void receive_byte(uint8_t byte);
-        void agat(uint8_t* packet_data);
-        void dgat(uint8_t* packet_data);
-        void icab(uint8_t* packet_data);
+        static void receive_loop(void* handle);
         void iack(uint8_t* packet_data);
         void inack(uint8_t* packet_data);
-        void ocab(uint8_t* packet_data);
-        void sled(uint8_t* packet_data);
-        uint8_t get_gate(uint8_t input);
+        void ack(uint8_t* packet_data);
 
     private:
         uint8_t buffer[HEADER_SIZE + DATA_SIZE];
-        uint8_t buffer_length;
         uint8_t id;
-        Type cab_type;
-        void handle_command();
+        Graph graph;
+        void initialize();
         void encode(uint8_t* data, sccp_packet_t* packet);
         void decode(uint8_t* data, sccp_packet_t* packet);
-        void enable_rx();
-        void disable_rx();
-        void reset_tx();
-        uint8_t tx_ready();
-        void tmp_led(uint8_t n);
-        
+        void handle_command();
+        uint8_t get_response(sccp_packet_t* response);
 };
 
 #endif

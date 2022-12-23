@@ -11,6 +11,8 @@ sccp_command_t commands[] = {
     {&SCCP::sled, 100},
 };
 
+uint8_t gate_map[] = {GATE0, GATE1, GATE2, GATE3};
+
 /**
  * Default constructor for SCCP class. Initializes properties to prevent inderterminacy. 
  */ 
@@ -46,8 +48,8 @@ void SCCP::init()
 void SCCP::send(sccp_packet_t packet) 
 {
     // Calcualte packet length
-    uint8_t packet_lenght = HEADER_SIZE + packet.data_len;
-    uint8_t data[packet_lenght];
+    uint8_t packet_length = HEADER_SIZE + packet.data_len;
+    uint8_t data[packet_length];
 
     // Encode packet
     encode(data, &packet);
@@ -56,8 +58,10 @@ void SCCP::send(sccp_packet_t packet)
     reset_tx();
     disable_rx();
 
+    //_delay_ms(5);
+
     // Send data
-    for(uint8_t i = 0; i < packet_lenght; i++) 
+    for(uint8_t i = 0; i < packet_length; i++) 
     {
         while(!SCCP::tx_ready());
         USART0.TXDATAL = data[i];
@@ -98,11 +102,12 @@ void SCCP::agat(uint8_t* packet_data)
     uint8_t gate = packet_data[0];
 
     // Check if gate is out of bounds
+
     if(gate >= 4) return;
     
     // Pull gate low
-    PORTC.DIRSET |= 1 << gate;
-    PORTC.OUT |= 1 << gate;
+    PORTA.DIRSET = gate_map[gate];
+    PORTA.OUT |= gate_map[gate];
 
     // Send ACK
     uint8_t data[] = {id, AGAT};
@@ -122,7 +127,7 @@ void SCCP::dgat(uint8_t* packet_data)
     if(gate >= 4) return;
 
     // Set gate as input again
-    PORTC.DIRCLR |= 1 << gate;
+    PORTA.DIRCLR |= gate_map[gate];
 
     // Send ACK
     uint8_t data[] = {id, DGAT};
@@ -135,29 +140,31 @@ void SCCP::dgat(uint8_t* packet_data)
  */ 
 void SCCP::icab(uint8_t* packet_data) 
 {
-    // Get activated gates
-    uint8_t gates = PORTC.IN & GATES;
+    // Get activated gate states
+    uint8_t gates = PORTA.IN & GATES;
 
     // Check if gate is activated and no gate is configured as output
-    if(!gates || PORTC.OUT & GATES) return;
+    if(!gates || PORTA.OUT & GATES) return;
+    
+    uint8_t gate = get_gate(gates);
+    //uint8_t gate = log(gates) / log(2);
 
     // Check if id has not been assigned yet
     if(!id) 
     {
         this->id = packet_data[0];
-        uint8_t gate = log(gates) / log(2);
         uint8_t data[] = {this->id, gate, this->cab_type};
         send(sccp_packet_t(BASE_ID, IACK, sizeof(data), data));
     }
     else 
     {
-        uint8_t data[] = {id};
+        uint8_t data[] = {this->id, gate};
         send(sccp_packet_t(BASE_ID, INACK, sizeof(data), data));
     }
 }
 
 /**
- * Method to for SCCP IACK. Currently, this method has no implementation. Its only use is to prevent offset issues in the command list.
+ *  * Method to for SCCP IACK. Currently, this method has no implementation. Its only use is to prevent offset issues in the command list.
  * @param The data from the sccp_packet_t. This will be empty.
  */ 
 void SCCP::iack(uint8_t* packet_data) 
@@ -284,15 +291,26 @@ uint8_t SCCP::tx_ready()
 }
 
 /**
+ * Method to derive the activated gate from agiven input
+ */ 
+uint8_t SCCP::get_gate(uint8_t input)  
+{    
+    for(uint8_t i = 0; i < 4; i++) 
+    {
+        if(gate_map[i] & input) return i;
+    }
+}
+
+/**
  * Temporary method to blink a LED for debugging purposes.
  */ 
 void SCCP::tmp_led(uint8_t n) 
 {
     for(uint8_t i = 0; i < n; i++)
     {
-        PORTA.OUT &= ~PIN7_bm;
+        PORTB.OUT &= ~PIN5_bm;
         _delay_ms(100);
-        PORTA.OUT |= PIN7_bm;
+        PORTB.OUT |= PIN5_bm;
         _delay_ms(100);
     }
 }
