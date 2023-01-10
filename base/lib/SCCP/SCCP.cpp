@@ -52,6 +52,7 @@ void SCCP::initialize()
     gpio_set_direction(GPIO_NUM_27, GPIO_MODE_INPUT);
 
     gpio_set_level(GPIO_NUM_32, 1);
+    printf("Yes\n");
 }
 
 uint8_t SCCP::identify(std::string* result) 

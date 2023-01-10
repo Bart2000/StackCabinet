@@ -44,9 +44,9 @@ void app_main()
     // pixels->SetPixel(0, red);
     // pixels->Write();
 
-    led_strip_t* test = led_strip_init(RMT_CHANNEL_0, GPIO_NUM_18, 1);
-    test->set_pixel(test, 0, 255, 0, 0);
-    test->refresh(test, 200);
+    //led_strip_t* test = led_strip_init(RMT_CHANNEL_0, GPIO_NUM_18, 1);
+    //test->set_pixel(test, 0, 255, 0, 0);
+    //test->refresh(test, 200);
         
     // while(true) 
     // {
