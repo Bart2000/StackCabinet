@@ -44,14 +44,27 @@ void app_main()
     // pixels->SetPixel(0, red);
     // pixels->Write();
 
-    //led_strip_t* test = led_strip_init(RMT_CHANNEL_0, GPIO_NUM_18, 1);
-    //test->set_pixel(test, 0, 255, 0, 0);
-    //test->refresh(test, 200);
+    led_strip_t* test = led_strip_init(RMT_CHANNEL_0, GPIO_NUM_18, 3);
+    
         
-    // while(true) 
-    // {
-    //     effect->Run(pixels);
-    // }
+    while(true) 
+    {
+        test->set_pixel(test, 0, 255, 0, 0);
+        test->set_pixel(test, 1, 0, 255, 0);
+        test->set_pixel(test, 2, 0, 0, 255);
+        test->refresh(test, 200);
+        vTaskDelay(100);
+        test->set_pixel(test, 2, 255, 0, 0);
+        test->set_pixel(test, 0, 0, 255, 0);
+        test->set_pixel(test, 1, 0, 0, 255);
+        test->refresh(test, 200);
+        vTaskDelay(100);
+        test->set_pixel(test, 1, 255, 0, 0);
+        test->set_pixel(test, 2, 0, 255, 0);
+        test->set_pixel(test, 0, 0, 0, 255);
+        test->refresh(test, 200);
+        vTaskDelay(100);
+    }
 
     while(1) 
     {
