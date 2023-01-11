@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <avr/delay.h>
 #include <string.h>
+#include <avr/eeprom.h>
 
 #define HEADER_SIZE 2
 #define DATA_SIZE 16
@@ -91,6 +92,7 @@ class SCCP
         void ocab(uint8_t* packet_data);
         void sled(uint8_t* packet_data);
         uint8_t get_gate(uint8_t input);
+        void tmp_led(uint8_t n);
 
     private:
         uint8_t buffer[HEADER_SIZE + DATA_SIZE];
@@ -104,7 +106,6 @@ class SCCP
         void disable_rx();
         void reset_tx();
         uint8_t tx_ready();
-        void tmp_led(uint8_t n);
         
 };
 

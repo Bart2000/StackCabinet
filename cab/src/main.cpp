@@ -6,6 +6,7 @@
 #include <avr/interrupt.h>
 #include <SCCP.h>
 #include <string.h>
+#include <avr/eeprom.h>
 
 void setup();
 
@@ -14,6 +15,13 @@ SCCP sccp;
 int main(void) {
     setup();
     sccp.init();
+    uint8_t addr = EEPROM_START + 0;
+
+    //eeprom_write_byte((uint8_t*)&addr, 0x05);
+
+    uint8_t test = eeprom_read_byte((uint8_t*)&addr); 
+    
+    sccp.tmp_led(test);
 
     while(1);
     // while(1) 
