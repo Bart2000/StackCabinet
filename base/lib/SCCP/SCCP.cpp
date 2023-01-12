@@ -50,6 +50,12 @@ void SCCP::initialize()
     gpio_set_direction(GPIO_NUM_14, GPIO_MODE_INPUT);
     gpio_set_direction(GPIO_NUM_32, GPIO_MODE_OUTPUT);
     gpio_set_direction(GPIO_NUM_27, GPIO_MODE_INPUT);
+    // Define transistor GPIO
+    gpio_set_direction(GPIO_NUM_5, GPIO_MODE_OUTPUT);
+    gpio_set_level(GPIO_NUM_5, 1);
+    // Defibe button GPIO, enable pull up
+    gpio_set_direction(GPIO_NUM_23, GPIO_MODE_INPUT);
+    gpio_pullup_en(GPIO_NUM_23);
 
     gpio_set_level(GPIO_NUM_32, 1);
     printf("Yes\n");
