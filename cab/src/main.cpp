@@ -6,37 +6,56 @@
 #include <avr/interrupt.h>
 #include <SCCP.h>
 #include <string.h>
-#include <avr/eeprom.h>
+#include <NVM.h>
+#include <eeprom.h>
 
 void setup();
 
 SCCP sccp;
 
+
 int main(void) {
     setup();
     sccp.init();
-    uint8_t addr = EEPROM_START + 0;
+    uint8_t addr = 0x0A;
+    uint8_t val = 2;
 
-    //eeprom_write_byte((uint8_t*)&addr, 0x05);
+    //uint8_t bruh = eeprom_read_byte((uint8_t*)addr);
+    //sccp.tmp_led(bruh);
+    //eeprom_update_byte((uint8_t*)addr, (uint8_t)3);
+    //eeprom_write_byte((uint8_t*)&addr2, 3);
 
-    uint8_t test = eeprom_read_byte((uint8_t*)&addr); 
+    //uint8_t test = eeprom_read_byte((uint8_t*)addr);
+    //eeprom_write_byte((uint8_t*)&addr, 0x03);
+
+    //NVM nvm;
     
+    //nvm.write_byte(PRODUCT_ADDR, (uint8_t)4);
+    //nvm.write_byte(PRODUCT_SET_ADDR, (uint8_t)2);
+    
+    //uint8_t test = nvm.read_byte(PRODUCT_ADDR);
+
+    //uint8_t test = eeprom_read_byte((uint8_t*)&addr);
+
+    //sccp.tmp_led(test);
+
+    uint8_t bruh = 0;
+    memcpy(&bruh, (uint8_t*)0x140A, 1);
+
+    sccp.tmp_led(bruh);
+
+    memcpy((uint8_t*)0x140A, &val, 1);
+    CCP = CCP_SPM_gc;
+    NVMCTRL.CTRLA = NVMCTRL_CMD_PAGEWRITE_gc;
+
+    while (NVMCTRL.STATUS & NVMCTRL_EEBUSY_bm);
+
+    uint8_t test = 0;
+    memcpy(&test, (uint8_t*)0x140A, 1);
+
     sccp.tmp_led(test);
 
     while(1);
-    // while(1) 
-    // {
-    //     uint8_t gates = PORTA.IN & GATES;
-    //     uint8_t gate = sccp.get_gate(gates);
-    //     char buff[8];
-    //     sprintf(buff, "%d\n", gate);
-    //     uint8_t length = strlen(buff);
-    //     for(uint8_t i = 0; i < length; i++) 
-    //     {
-    //         USART0.TXDATAL = buff[i];
-    //     }
-    //     _delay_ms(500);
-    // }
 }
 
 void setup() 

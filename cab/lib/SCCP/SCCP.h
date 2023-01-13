@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <avr/delay.h>
 #include <string.h>
-#include <avr/eeprom.h>
 
 #define HEADER_SIZE 2
 #define DATA_SIZE 16
