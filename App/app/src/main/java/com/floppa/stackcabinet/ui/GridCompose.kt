@@ -1,131 +1,180 @@
 package com.floppa.stackcabinet.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Cached
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
-import androidx.navigation.NavHostController
 import com.floppa.stackcabinet.R
 import com.floppa.stackcabinet.models.Cabinet
 import com.floppa.stackcabinet.models.Commands
+import com.floppa.stackcabinet.models.ComponentsTypes
+import com.floppa.stackcabinet.models.cabinets.Square
+import com.floppa.stackcabinet.models.states.Connection.*
 import com.floppa.stackcabinet.navigation.Screens
 import com.floppa.stackcabinet.ui.shared.CabinetCompose
+import com.floppa.stackcabinet.ui.shared.CenterElement
+import com.floppa.stackcabinet.ui.shared.Loading
 import com.floppa.stackcabinet.ui.viewmodel.GridViewModel
-import com.floppa.stackcabinet.ui.viewmodel.ViewStateGrid
+import com.floppa.stackcabinet.ui.viewmodel.ViewStateGrid.*
+import com.floppa.stackcabinet.ui.viewmodel.ViewStateScreen
+import com.github.skydoves.colorpicker.compose.HsvColorPicker
+import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 
+
+sealed class Dialog {
+    object Closed : Dialog()
+    object ColorPicker : Dialog()
+    object ComponentPicker : Dialog()
+}
 
 @Composable
 fun GridCompose(
-    navController: NavHostController,
     viewModel: GridViewModel,
     lifeCycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
 ) {
 
-    val graph1 = arrayOf(
-        intArrayOf(1),
-        intArrayOf(2, 3, 0, 255),
-        intArrayOf(0, 4, 5, 1),
-        intArrayOf(0, 1, 5, 6),
-        intArrayOf(0, 7, 2, 0),
-        intArrayOf(2, 7, 8, 3),
-        intArrayOf(3, 8, 0, 0),
-        intArrayOf(4, 0, 9, 5),
-        intArrayOf(0, 0, 5, 9),
-        intArrayOf(0, 0, 8, 7))
 
-    val graph2 = arrayOf(
-        intArrayOf(1),
-        intArrayOf(0, 255, 2, 3),
-        intArrayOf(0, 4, 1, 0),
-        intArrayOf(1, 4, 0, 0),
-        intArrayOf(5, 3, 2, 0),
-        intArrayOf(6, 0, 0, 4),
-        intArrayOf(0, 5, 0, 7),
-        intArrayOf(8, 0, 9, 6),
-        intArrayOf(7, 0, 0, 10),
-        intArrayOf(11, 0, 0, 7),
-        intArrayOf(0, 8, 0, 12),
-        intArrayOf(9, 0, 13, 0),
-        intArrayOf(0, 14, 0, 10),
-        intArrayOf(11, 0, 15, 0),
-        intArrayOf(0, 12, 0, 16),
-        intArrayOf(0, 17, 0, 13),
-        intArrayOf(14, 0, 0, 18),
-        intArrayOf(0, 15, 18, 0),
-        intArrayOf(16, 0, 17, 0))
+    DisposableEffect(lifeCycleOwner) {
+        // Create an observer that triggers our remembered callbacks
+        // for sending analytics events
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> {
+                    viewModel.startConnection()
+                }
+                Lifecycle.Event.ON_PAUSE -> viewModel.stopConnection()
+                else -> {}
+            }
+        }
+        lifeCycleOwner.lifecycle.addObserver(observer)
 
-    viewModel.calculateGrid(graph2)
+        onDispose {
+            lifeCycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
-
-
-    InitScaffold(viewModel, navController) {
-        val uiState by viewModel.uiState.collectAsState()
-        Box(
-            Modifier
-                .pointerInput(Unit) {
-                    detectTransformGestures { centroid, pan, gestureZoom, _ ->
-                        val oldScale = uiState.currentZoom
-                        val newScale = uiState.currentZoom * gestureZoom
-                        val newOffset =
-                            (uiState.currentOffset + (centroid / oldScale)) - ((centroid / newScale) + (pan / oldScale))
-                        viewModel.updateUiState(newOffset, newScale)
+    SetupScaffold(viewModel) {
+        when (viewModel.viewStateScreen.collectAsState().value) {
+            // Check which screen / Grid or Components
+            ViewStateScreen.Grid -> {
+                // Check connection state, Connected, connecting or disconnected
+                when (viewModel.connectionState.collectAsState().value) {
+                    CONNECTING -> Loading(R.string.txt_connecting)
+                    CONNECTED -> {
+                        // Make the call to get the grid from the EPS32
+                        LaunchedEffect(Unit) {
+                            viewModel.makeCall(Commands().requestGrid())
+                        }
+                        when (val result = viewModel.gridViewState.collectAsState().value) {
+                            // Show result after getting and calculating the grid
+                            Loading -> Loading(R.string.txt_loading)
+                            is Success -> DrawGrid(result.grid, viewModel)
+                            is Problem -> TODO()
+                        }
                     }
+                    DISCONNECTED -> CenterElement {
+                        Text(text = "Disconnected")
+                    }
+                    ERROR -> CenterElement {
+                        Text(text = "Could not connect to StackCabinet, please try again",
+                            textAlign = TextAlign.Center)
+                    }
+                    STREAMING -> TODO()
                 }
-                .graphicsLayer {
-                    translationX = - uiState.currentOffset.x * uiState.currentZoom
-                    translationY = - uiState.currentOffset.y * uiState.currentZoom
-                    scaleX = uiState.currentZoom
-                    scaleY = uiState.currentZoom
-                    transformOrigin = TransformOrigin(0f, 0f)
-                }
-                .fillMaxSize(),
-            Alignment.Center
-        ) {
-            when (val result = viewModel.gridViewState.collectAsState().value) {
-                ViewStateGrid.Loading -> println("LOADING")
-                is ViewStateGrid.Success -> DrawGrid(result.grid)
-//                ViewStateGrid.Disconnected -> TODO()
-//                is ViewStateGrid.Problem -> TODO()
+            }
+            ViewStateScreen.Components -> {
+                ComponentsCompose(viewModel)
             }
         }
     }
 }
 
 @Composable
-fun DrawGrid(grid: List<Cabinet>?) {
-    grid?.forEach {
-        CabinetCompose(borderColor = it.cabinetColor,
-            backgroundColor = it.ledColor,
-            x = it.x,
-            y = it.y,
-            onClick = { println( "Show part: ${it.id}, ${it.isBase}") },
-            onLongClink = { println("Edit") },
-            onDoubleClick = { println("Open Cabinet") }) {
+fun DrawGrid(grid: List<Cabinet>?, viewModel: GridViewModel) {
+
+    val showColorWheel = remember { mutableStateOf(false) }
+    val cabinetToEdit = remember { mutableStateOf(Square()) }
+    val uiState by viewModel.uiState.collectAsState()
+
+    if (showColorWheel.value) {
+        DialogChangeSettings(state = showColorWheel, cabinet = cabinetToEdit, viewModel = viewModel)
+    }
+
+    Box(
+        Modifier
+            .pointerInput(Unit) {
+                detectTransformGestures { centroid, pan, gestureZoom, _ ->
+                    val oldScale = uiState.currentZoom
+                    val newScale = uiState.currentZoom * gestureZoom
+                    val newOffset =
+                        (uiState.currentOffset + (centroid / oldScale)) - ((centroid / newScale) + (pan / oldScale))
+                    viewModel.updateUiStateGrid(newOffset, newScale)
+                }
+            }
+            .graphicsLayer {
+                translationX = -uiState.currentOffset.x * uiState.currentZoom
+                translationY = -uiState.currentOffset.y * uiState.currentZoom
+                scaleX = uiState.currentZoom
+                scaleY = uiState.currentZoom
+                transformOrigin = TransformOrigin(0f, 0f)
+            }
+            .fillMaxSize(),
+        Alignment.Center
+    ) {
+        grid?.forEach {
+            CabinetCompose(borderColor = it.cabinetColor,
+                backgroundColor = it.ledColor,
+                x = it.x,
+                y = it.y,
+                width = it.width,
+                height = it.height,
+                onClick = {
+                    println("Show part: ${it.id}")
+
+                },
+                onLongClink = {
+                    cabinetToEdit.value = it as Square
+                    showColorWheel.value = true
+                },
+                onDoubleClick = {
+                    println("Open Cabinet")
+                }) {
+                // Compose for inside the Cabinet
+            }
         }
     }
 }
 
 
 @Composable
-fun InitScaffold(
-    viewModel: GridViewModel?,
-    navController: NavHostController?,
+fun SetupScaffold(
+    viewModel: GridViewModel,
     content: @Composable () -> Unit,
 ) {
-    val currentRoute = navController?.currentBackStackEntry?.destination?.route
+
+    val connection = viewModel.connectionState.collectAsState().value
+    val screen = viewModel.viewStateScreen.collectAsState().value
     Scaffold(
         topBar = {
             TopAppBar(
@@ -134,7 +183,11 @@ fun InitScaffold(
                 },
                 actions = {
                     IconButton(onClick = {
-                        viewModel?.makeCall(Commands.REQUEST_GRID)
+                        if (connection == DISCONNECTED || connection == ERROR) {
+                            viewModel.startConnection()
+                        } else {
+                            viewModel.makeCall(Commands().requestGrid())
+                        }
                     }) {
                         Icon(Icons.Rounded.Cached, "reload Data")
                     }
@@ -144,28 +197,20 @@ fun InitScaffold(
         bottomBar = {
             BottomAppBar {
                 BottomNavigationItem(icon = {
-                    Screens.Grid.icon?.let { Icon(imageVector = it, "") }
+                    Screens.Main.icon?.let { Icon(imageVector = it, "") }
                 },
-                    label = { Text(text = stringResource(Screens.Grid.labelResourceId)) },
-                    selected = (currentRoute == Screens.Grid.route),
+                    label = { Text(text = stringResource(Screens.Main.labelResourceId)) },
+                    selected = (screen == ViewStateScreen.Grid),
                     onClick = {
-                        if (currentRoute != Screens.Grid.route) {
-                            navController?.navigate(Screens.Grid.route) {
-                                popUpTo(Screens.Components.route) { inclusive = true }
-                            }
-                        }
+                        viewModel.setRoute(Screens.Main)
                     })
                 BottomNavigationItem(icon = {
                     Screens.Components.icon?.let { Icon(imageVector = it, "") }
                 },
                     label = { Text(text = stringResource(Screens.Components.labelResourceId)) },
-                    selected = (currentRoute == Screens.Components.route),
+                    selected = (screen == ViewStateScreen.Components),
                     onClick = {
-                        if (currentRoute != Screens.Components.route) {
-                            navController?.navigate(Screens.Components.route) {
-                                popUpTo(Screens.Grid.route) { inclusive = true }
-                            }
-                        }
+                        viewModel.setRoute(Screens.Components)
                     })
             }
         }
@@ -179,3 +224,125 @@ fun InitScaffold(
 }
 
 
+@Composable
+fun DialogChangeSettings(
+    state: MutableState<Boolean>,
+    cabinet: MutableState<Square>,
+    viewModel: GridViewModel,
+) {
+    val controller = rememberColorPickerController()
+
+    val prevLedColor by remember { mutableStateOf(cabinet.value.ledColor) }
+    var newLedColor by remember { mutableStateOf(Color.Unspecified) }
+    val prevComponent by remember { mutableStateOf(cabinet.value.component) }
+    var newComponent by remember { mutableStateOf(ComponentsTypes.RESISTOR) }
+
+    var expanded by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+
+    when (viewModel.stateDialog.collectAsState().value) {
+        Dialog.Closed -> {
+            Dialog(onDismissRequest = { state.value = false }) {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                        ) {
+                            Text(text = "Select LED color",
+                                modifier = Modifier.padding(top = 4.dp, end = 4.dp))
+                            Spacer(Modifier.weight(1f))
+
+                            Box(modifier = Modifier
+                                .size(56.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(cabinet.value.ledColor)
+                                .clickable {
+                                    viewModel.setStateDialog(Dialog.ColorPicker)
+                                })
+                        }
+                        Row(
+                            modifier = Modifier
+                                .padding(vertical = 8.dp),
+                        ) {
+                            Text(text = "Select Component",
+                                modifier = Modifier.padding(top = 4.dp, bottom = 4.dp))
+
+                            Spacer(Modifier.weight(1f))
+
+                            DropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = {
+                                    expanded = false
+                                    focusManager.clearFocus()
+                                },
+                            ) {
+                                ComponentsTypes.values().forEach { label ->
+                                    DropdownMenuItem(onClick = {
+                                        newComponent = label
+                                        expanded = false
+                                        focusManager.clearFocus()
+                                    }) {
+                                        Text(text = label.nameFull)
+                                    }
+                                }
+                            }
+//                            Box(modifier = Modifier
+//                                .size(56.dp)
+//                                .clip(RoundedCornerShape(8.dp))
+//                                .background(cabinet.value.ledColor)
+//                                .clickable {
+//                                    viewModel.setStateDialog(Dialog.ColorPicker)
+//                                })
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically) {
+                            Button(onClick = {}) {
+                                Text(text = "Update")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Dialog.ColorPicker -> {
+            Dialog(onDismissRequest = { state.value = false }) {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(horizontalArrangement = Arrangement.Center) {
+                            HsvColorPicker(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(150.dp)
+                                    .padding(10.dp),
+                                controller = controller,
+                                onColorChanged = {
+                                    newLedColor = it.color
+                                }
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically) {
+                            Button(onClick = {
+                                viewModel.setStateDialog(Dialog.Closed)
+                            }) {
+                                Text(text = "Set color")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Dialog.ComponentPicker -> TODO()
+    }
+}

@@ -2,15 +2,21 @@ package com.floppa.stackcabinet.ui.viewmodel
 
 import android.bluetooth.BluetoothDevice
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
+import android.util.Log
 import androidx.compose.ui.geometry.Offset
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.floppa.stackcabinet.database.Resource
 import com.floppa.stackcabinet.models.*
-import com.floppa.stackcabinet.repository.BluetoothRepository
-import com.floppa.stackcabinet.repository.DatabaseRepository
+import com.floppa.stackcabinet.models.states.Connection
+import com.floppa.stackcabinet.models.states.Connection.*
+import com.floppa.stackcabinet.navigation.Screens
+import com.floppa.stackcabinet.repository.*
+import com.floppa.stackcabinet.ui.Dialog
+import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,21 +29,25 @@ import javax.inject.Inject
 sealed class ViewStateGrid {
     // Represents different states for the overview screen
     object Loading : ViewStateGrid()
-    object Disconnected : ViewStateGrid()
     data class Success(val grid: List<Cabinet>?) : ViewStateGrid()
     data class Problem(val exception: ProblemState?) : ViewStateGrid()
 }
 
-sealed class ViewStateListComponents {
+sealed class ViewStateComponents {
     // Represents different states for the overview screen
-    object Loading : ViewStateListComponents()
-    data class Success(val components: List<Component>?) : ViewStateListComponents()
-    data class Problem(val exception: ProblemState?) : ViewStateListComponents()
+    object Loading : ViewStateComponents()
+    data class Success(val components: List<Component>?) : ViewStateComponents()
+    data class Problem(val exception: ProblemState?) : ViewStateComponents()
 }
 
-data class UiState(
+sealed class ViewStateScreen {
+    object Grid : ViewStateScreen()
+    object Components : ViewStateScreen()
+}
+
+data class UiStateGrid(
     val currentOffset: Offset = Offset.Zero,
-    val currentZoom: Float = 1f
+    val currentZoom: Float = 1f,
 )
 
 @HiltViewModel
@@ -47,28 +57,96 @@ class GridViewModel
     private val componentsRepository: DatabaseRepository,
 ) : ViewModel() {
 
-    private val repository = BluetoothRepository(appContext)
-    private val gridRepository = GridRepository()
+    /**
+     * States of the Bluetooth connection
+     */
+    private val _connectionState = MutableStateFlow<Connection>(DISCONNECTED)
+    val connectionState = _connectionState.asStateFlow()
 
-    private val _viewStateGrid = MutableStateFlow<ViewStateGrid>(ViewStateGrid.Disconnected)
+    private val _viewStateScreen = MutableStateFlow<ViewStateScreen>(ViewStateScreen.Grid)
+    val viewStateScreen = _viewStateScreen.asStateFlow()
+
+    /**
+     * UI states of the Screen Grid
+     */
+    private val _viewStateGrid = MutableStateFlow<ViewStateGrid>(ViewStateGrid.Loading)
     val gridViewState = _viewStateGrid.asStateFlow()
 
-    private val _viewStateListComponents = MutableStateFlow<ViewStateListComponents>(ViewStateListComponents.Loading)
-    val componentsViewState = _viewStateListComponents.asStateFlow()
+    private val _stateDialogGrid = MutableStateFlow<Dialog>(Dialog.Closed)
+    val stateDialog = _stateDialogGrid.asStateFlow()
 
-    private val _connectionState = MutableStateFlow(repository.isConnected)
-    val connectionState: StateFlow<Boolean> = _connectionState
+    /**
+     * UI state of the view in the screen Grid,
+     * here we store the offset and Zoom level of the viewed grid
+     */
+    private val _uiStateGrid = MutableStateFlow(UiStateGrid())
+    val uiState: StateFlow<UiStateGrid> = _uiStateGrid.asStateFlow()
 
-    // UI state
-    private val _uiState = MutableStateFlow(UiState())
-    val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+    /**
+     * UI states of the Screen Components
+     */
+    private val _viewStateComponents = MutableStateFlow<ViewStateComponents>(ViewStateComponents.Loading)
+    val viewStateComponents = _viewStateComponents.asStateFlow()
 
+
+    private val _revealedCardIdsList = MutableStateFlow(listOf<Int>())
+    val revealedCardIdsList: StateFlow<List<Int>> get() = _revealedCardIdsList
+
+    fun onItemExpanded(componentId: Int) {
+        if (_revealedCardIdsList.value.contains(componentId)) return
+        _revealedCardIdsList.value = _revealedCardIdsList.value.toMutableList().also { list ->
+            list.add(componentId)
+        }
+    }
+
+    fun onItemCollapsed(componentId: Int) {
+        if (!_revealedCardIdsList.value.contains(componentId)) return
+        _revealedCardIdsList.value = _revealedCardIdsList.value.toMutableList().also { list ->
+            list.remove(componentId)
+        }
+    }
+
+    private val handler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            when (msg.what){
+                MESSAGE_RECEIVED ->{
+                    val result = msg.obj as List<*>
+                    Log.i("MESSAGE_RECEIVED", "P1: ${result[0].toString()}, P2:${result[1].toString()}")
+                    when (CommandsEnum.valueOf(result[0].toString())){
+                        CommandsEnum.REQUEST_GRID -> {
+                            println("Parsing GRID")
+                            val graph = Gson().fromJson(result[1].toString(),  Array<IntArray>::class.java)
+                            calculateGrid(graph)
+                        }
+                        CommandsEnum.SET_COMPONENT -> TODO()
+                        CommandsEnum.SET_LED -> TODO()
+                        CommandsEnum.OPEN_CABINET -> TODO()
+                        CommandsEnum.RESET_ALL -> TODO()
+                    }
+                }
+                IS_CONNECTED -> {
+                    Log.i("IS_CONNECTED", "connection state ${msg.arg2}")
+                    when (values()[msg.arg2]){
+                        CONNECTING -> _connectionState.value = CONNECTING
+                        CONNECTED -> _connectionState.value = CONNECTED
+                        DISCONNECTED -> _connectionState.value = DISCONNECTED
+                        ERROR -> _connectionState.value = ERROR
+                        STREAMING -> TODO()
+                    }
+                }
+            }
+        }
+    }
+
+    private val repository = BluetoothRepository(appContext, handler)
+    private val gridRepository = GridRepository()
 
     fun getPairedBase(): BluetoothDevice? {
         return repository.getPairedBase()
     }
 
     fun startConnection() {
+        _connectionState.value = CONNECTING
         repository.startConnection(repository.getPairedBase())
     }
 
@@ -76,16 +154,12 @@ class GridViewModel
         repository.stopConnection(repository.getPairedBase())
     }
 
-    private fun writeData(command: Commands) {
-        repository.writeToStream(command.name.toByteArray(Charsets.UTF_8))
-    }
-
     /**
-     * Request the grid from the ESP
+     * Make a protocol call to the ESP32
      * @param command the command you want to send
      */
-    fun makeCall(command: Commands) {
-        writeData(command)
+    fun makeCall(command: String) {
+        repository.writeToStream(command.toByteArray(Charsets.UTF_8))
     }
 
     /**
@@ -95,9 +169,9 @@ class GridViewModel
         viewModelScope.launch {
             componentsRepository.getListComponents().collect {
                 when (it) {
-                    is Resource.Error -> _viewStateListComponents.value = ViewStateListComponents.Problem(it.state)
-                    is Resource.Loading -> _viewStateListComponents.value = ViewStateListComponents.Loading
-                    is Resource.Success -> _viewStateListComponents.value = ViewStateListComponents.Success(it.data)
+                    is Resource.Error -> _viewStateComponents.value = ViewStateComponents.Problem(it.state)
+                    is Resource.Loading -> _viewStateComponents.value = ViewStateComponents.Loading
+                    is Resource.Success -> _viewStateComponents.value = ViewStateComponents.Success(it.data)
                 }
             }
         }
@@ -138,6 +212,9 @@ class GridViewModel
         viewModelScope.launch {
             componentsRepository.removeComponent(component)
             getComponents()
+            _revealedCardIdsList.value = _revealedCardIdsList.value.toMutableList().also { list ->
+                list.remove(component.index)
+            }
         }
     }
 
@@ -153,13 +230,28 @@ class GridViewModel
     }
 
     /**
-     * Store the state of the UI in the [UiState] class
+     * Store the state of the UI in the [UiStateGrid] class
      * @param offset the new offset
      * @param zoom the new zoom
      */
-    fun updateUiState(offset: Offset, zoom: Float) {
-        _uiState.update{
-            UiState(offset,zoom)
+    fun updateUiStateGrid(offset: Offset, zoom: Float) {
+        _uiStateGrid.update {
+            UiStateGrid(offset, zoom)
         }
+    }
+
+    /**
+     * Set the route of the app, we use a single ViewModel for 2 UI screens, here we select the one
+     * we want to see.
+     */
+    fun setRoute(route: Screens) {
+        when(route.route){
+            Screens.Components.route -> _viewStateScreen.value = ViewStateScreen.Components
+            Screens.Main.route -> _viewStateScreen.value = ViewStateScreen.Grid
+        }
+    }
+
+    fun setStateDialog(state: Dialog){
+        _stateDialogGrid.value = state
     }
 }
