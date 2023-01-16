@@ -22,8 +22,8 @@
 #define BAUDRATE 115200
 #define BUF_SIZE 2048
 #define UART_NUM UART_NUM_1
-#define TX_GPIO 10
-#define RX_GPIO 9
+#define TX_GPIO 13
+#define RX_GPIO 12
 #define TIMEOUT_MS 10
 #define MEMBERS 6
 
