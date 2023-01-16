@@ -51,6 +51,7 @@ void SCCP::initialize()
     gpio_set_direction(GPIO_NUM_23, GPIO_MODE_INPUT);
     // Enable pull up
     gpio_pullup_en(GPIO_NUM_23);
+    
     gpio_set_direction(GPIO_NUM_32, GPIO_MODE_OUTPUT);
     // Transistor to power Cabs
     gpio_set_direction(GPIO_NUM_5, GPIO_MODE_OUTPUT);
