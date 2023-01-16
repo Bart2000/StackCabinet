@@ -2,6 +2,7 @@
 #include <driver/uart.h>
 #include <driver/gpio.h>
 #include <SCCP.h>
+#include <Bluetooth.h>
 #include <esp_err.h>
 #include <stdio.h>
 #include <string.h>
@@ -19,6 +20,7 @@
 #define TIMOUT_MS 20
 
 SCCP sccp;
+Bluetooth(sccp) esp_bt; 
 TaskHandle_t handle;
 static intr_handle_t handle_console;
 static QueueHandle_t uart_queue;
@@ -30,6 +32,7 @@ extern "C"
 
 void app_main() 
 {   
+    esp_bt.init(sccp, led);
     while(1) 
     {
         if(!gpio_get_level(GPIO_NUM_23)) 

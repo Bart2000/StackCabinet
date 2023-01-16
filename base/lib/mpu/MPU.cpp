@@ -1,7 +1,7 @@
 /*
  * File:      MPU.cpp
  * Author:    Stefan de Kraker
- * Class:     Sonar
+ * Class:     MPU
  * Version:   1.0
  * 
  * Code for reading data for the MPU6050 via I2C
