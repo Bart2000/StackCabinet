@@ -12,12 +12,19 @@
 #include "esp_gap_bt_api.h"
 #include "esp_bt_device.h"
 #include "esp_spp_api.h"
+#include "driver/gpio.h"
+#include "esp_system.h"
+#include "esp_spi_flash.h"
 
 #include "time.h"
 #include "sys/time.h"
 
-#define button_gpio 32
-#define led_gpio 33
+// extern "C" void app_main(void);
+
+
+
+#define button_gpio GPIO_NUM_23
+#define led_gpio GPIO_NUM_33
 
 #define SPP_CB_TAG "ESP_SPP_CB"
 #define GAP_CB_TAG "ESP_BT_GAP_CB"
@@ -27,10 +34,10 @@
 #define SPP_SERVER_NAME "SPP_SERVER"
 #define DEVICE_NAME "StackCabinet"
 
-static bool bWriteAfterOpenEvt = true;
-static bool bWriteAfterWriteEvt = false;
-static bool bWriteAfterSvrOpenEvt = true;
-static bool bWriteAfterDataReceived = true;
+// static bool bWriteAfterOpenEvt = true;
+// static bool bWriteAfterWriteEvt = false;
+// static bool bWriteAfterSvrOpenEvt = true;
+// static bool bWriteAfterDataReceived = true;
 
 static const esp_spp_mode_t esp_spp_mode = ESP_SPP_MODE_CB;
 static const esp_spp_sec_t sec_mask = ESP_SPP_SEC_AUTHENTICATE;
@@ -39,26 +46,49 @@ static const esp_spp_role_t role_slave = ESP_SPP_ROLE_SLAVE;
 static char charArrayLastReceivedData[20];
 static char charArrayLastSendData[20];
 
+static bool stateLed = false;
+
 typedef enum
 {
     SEND_DATA = 0,
     RECEIVED_DATA = 1
 } char_array_store_t;
 
-static void spp_init_evt();
+typedef enum
+{
+    REQUEST_GRID = 0,
+    REQUEST_CABINET = 1,
+    SET_CABINET = 2,
+    RESET_CABINET = 3,
+    INCORRECT = 4
+} commands_t;
+
+
+static void spp_init_evt(const char *name);
 
 static char *bda2str(uint8_t *bda, char *str, size_t size);
+
+static void toggleLed();
+
+static void processCommand(esp_spp_cb_param_t *param, commands_t command);
+
+static commands_t checkCommand(char command[]);
 
 static void saveData(char_array_store_t operation, int len, uint8_t *p_data)
 {
     if (operation)
     {
-        strncpy(charArrayLastReceivedData, (char*)p_data, len);
+        // Clear buffer
+        memset(charArrayLastReceivedData, 0, sizeof(charArrayLastReceivedData));
+        // Copy data to the char array
+        strncpy(charArrayLastReceivedData, (char *)p_data, len);
+
         printf("Data stored in charArrayLastReceivedData: %s\r\n", charArrayLastReceivedData);
     }
     else
     {
-        strncpy(charArrayLastSendData, (char*)p_data, len);
+        memset(charArrayLastSendData, 0, sizeof(charArrayLastSendData));
+        strncpy(charArrayLastSendData, (char *)p_data, len);
         printf("Data stored in charArrayLastSendData: %s\r\n", charArrayLastSendData);
     }
 }
@@ -71,83 +101,35 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
         spp_init_evt(DEVICE_NAME);
         break;
     case ESP_SPP_DATA_IND_EVT: // When SPP connection received data, the event comes, only for ESP_SPP_MODE_CB
-        ESP_LOGI(SPP_CB_TAG, "ESP_SPP_DATA_IND_EVT len=%d handle=%d", param->data_ind.len, param->data_ind.handle);
-        ESP_LOGI(SPP_CB_TAG, "Call esp_log_buffer_hex("
-                             ",param->data_ind.data,param->data_ind.len)");
-
-        // ESP_LOG_BUFFER_HEX(tag, buffer, buff_len)
-        // tag: description tag
-        // buffer: Pointer to the buffer array
-        // buff_len: length of buffer in bytes
 
         esp_log_buffer_hex("Received HEX Data", param->data_ind.data, param->data_ind.len);
         esp_log_buffer_char("Received String Data", param->data_ind.data, param->data_ind.len);
         saveData(RECEIVED_DATA, param->data_ind.len, param->data_ind.data);
+        processCommand(param, checkCommand(charArrayLastSendData));
 
-        // New data
-        // abc
-        // for (int i = 0; i < SPP_DATA_LEN; ++i)
-        // {
-        // spp_data[i] = i;
-        //     if (param->data_ind.data[i] != 0){
-        //         spp_data[i] = param->data_ind.data[i];
-        //     } else {
-        //         spp_data[i] = 0xf;
-        //     }
-
-        // }
-        // ESP_LOGI(SPP_TAG, "Call esp_spp_write(param->write.handle, SPP_DATA_LEN, spp_data)");
-        // esp_spp_write(param->write.handle, SPP_DATA_LEN, spp_data);
-
-        ESP_LOGI(SPP_CB_TAG, "Call esp_spp_write(param->write.handle, 8, Received)");
-        char *c = "Received";
-        uint8_t *u = (uint8_t *)c;
+        // ESP_LOGI(SPP_CB_TAG, "Call esp_spp_write(param->write.handle, 8, Received)");
+        // char *c = "RECEIVED";
+        // uint8_t *u = (uint8_t *)c;
         // uint8_t x = u[1];
-        esp_spp_write(param->srv_open.handle, 8, u);
-        saveData(SEND_DATA, sizeof(u), u);
+        // esp_spp_write(param->srv_open.handle, strlen(c), u);
+        // saveData(SEND_DATA, strlen(c), u);
         break;
 
-    case ESP_SPP_WRITE_EVT:
-        // When SPP write operation completes, the event comes, only for ESP_SPP_MODE_CB
-        // In use in Initiator
+    // case ESP_SPP_SRV_OPEN_EVT: // After connection is established, short before data is received
+    // When SPP Server connection open, the event comes
+    // In use in Acceptor
+    //     ESP_LOGI(SPP_CB_TAG, "ESP_SPP_SRV_OPEN_EVT");
 
-        // Original Acceptor Code - Start
-        // ESP_LOGI(SPP_CB_TAG, "ESP_SPP_WRITE_EVT");
-        // Original Acceptor Code - End
+    //     if (bWriteAfterSvrOpenEvt)
+    //     {
+    //         char *c = "REQUEST_GRID|{{255}, {0, 255, 2, 3, 0, 0}, {0, 0, 4, 1, 0, 0}, {0, 1, 4, 0, 0, 0}, {0, 3, 2, 0, 0, 0}}";
+    //         uint8_t *u = (uint8_t *)c;
 
-        // Code copied from Initiator - Start
-        // ESP_LOGI(SPP_CB_TAG, "ESP_SPP_WRITE_EVT len=%d cong=%d", param->write.len, param->write.cong);
+    //         esp_spp_write(param->srv_open.handle, strlen(c), u);
+    //         saveData(SEND_DATA, strlen(c), u);
 
-        // esp_log_buffer_hex("HEX Data was sent", spp_data, SPP_DATA_LEN);
-
-        // ESP_LOGI(SPP_CB_TAG, "if param->write.cong ...");
-        // if (param->write.cong == 0)
-        // {
-        // ESP_LOGI(SPP_CB_TAG, "param->write.cong == 0");
-        //     if (bWriteAfterWriteEvt)
-        //     {
-        // ESP_LOGI(SPP_CB_TAG, "bWriteAfterWriteEvt = true");
-        // ESP_LOGI(SPP_CB_TAG, "Call esp_spp_write(param->write.handle, SPP_DATA_LEN, spp_data)");
-        //         esp_spp_write(param->write.handle, SPP_DATA_LEN, spp_data);
-        //     }
-
-        // }
-
-        break;
-    case ESP_SPP_SRV_OPEN_EVT: // After connection is established, short before data is received
-        // When SPP Server connection open, the event comes
-        // In use in Acceptor
-        ESP_LOGI(SPP_CB_TAG, "ESP_SPP_SRV_OPEN_EVT");
-
-        if (bWriteAfterSvrOpenEvt)
-        {
-            char *c = "Hello_new_connection";
-            uint8_t *u = (uint8_t *)c;
-
-            esp_spp_write(param->srv_open.handle, 21, u);
-            saveData(SEND_DATA, sizeof(u), u);
-        }
-        break;
+    //     }
+    //     break;
     default:
         break;
     }
@@ -164,6 +146,12 @@ static void spp_init_evt(const char *name)
     esp_spp_start_srv(sec_mask, role_slave, 0, SPP_SERVER_NAME);
 }
 
+/**
+ * Convert the Bluetooth Device Address to a String
+ * @param bda pointer to the Bluetooth Device Address
+ * @param str pointer to the location to store the string of the Bluetooth Device Address
+ * @param size size of the Bluetooth Device Address
+ */
 static char *bda2str(uint8_t *bda, char *str, size_t size)
 {
     if (bda == NULL || str == NULL || size < 18)
@@ -175,6 +163,58 @@ static char *bda2str(uint8_t *bda, char *str, size_t size)
     sprintf(str, "%02x:%02x:%02x:%02x:%02x:%02x",
             p[0], p[1], p[2], p[3], p[4], p[5]);
     return str;
+}
+
+static void toggleLed()
+{
+    gpio_set_level(led_gpio, !stateLed);
+    stateLed = !stateLed;
+}
+
+static commands_t checkCommand(char command[])
+{
+    if (!strcmp(charArrayLastReceivedData, "REQUEST_GRID"))
+    {
+        printf("Command: %s\r\n", "REQUEST_GRID");
+        return REQUEST_GRID;
+    }
+    else if (!strcmp(charArrayLastReceivedData, "REQUEST_CABINET"))
+    {
+        printf("Command: %s\r\n", "REQUEST_CABINET");
+        return REQUEST_CABINET;
+    }
+    else
+    {
+        printf("Command not correct \r\n");
+        return INCORRECT;
+    }
+}
+
+static void processCommand(esp_spp_cb_param_t *param, commands_t command)
+{
+    switch (command)
+    {
+    case REQUEST_GRID:
+    {
+        char *c = "REQUEST_GRID|[[255, 1, 0], [0, 255, 2, 3, 0, 0, 0], [0, 0, 4, 1, 0, 0, 1], [0, 1, 4, 0, 0, 3], [0, 3, 2, 0, 0, 0, 2]]";
+        uint8_t *u = (uint8_t *)c;
+        esp_spp_write(param->srv_open.handle, strlen(c), u);
+        break;
+    }
+    case REQUEST_CABINET:
+    {
+        break;
+    }
+    case INCORRECT:
+    {
+        ESP_LOGI("processCommand", "Incorrect command");
+        break;
+    }
+    default:
+    {
+        break;
+    }
+    }
 }
 
 void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param)
@@ -270,7 +310,23 @@ void esp_setup_bt()
     ESP_LOGI(SETUP_BT_TAG, "Own address:[%s]", bda2str((uint8_t *)esp_bt_dev_get_address(), bda_str, sizeof(bda_str)));
 }
 
-void app_main(void)
+void app_main()
 {
     esp_setup_bt();
+    gpio_set_direction(led_gpio, GPIO_MODE_OUTPUT);
+    gpio_set_direction(button_gpio, GPIO_MODE_INPUT);
+    /* 
+    * Enable internal pull down on the GPIO PIN 
+    * This step can be skipped and a external pull up/down resistor can be used
+    */
+    gpio_pullup_en(button_gpio);
+
+        while (1) {
+        /* Get the GPIO GPIO input level */
+        if (!gpio_get_level(button_gpio)){
+            printf("Hello world\r\n");
+        }
+    vTaskDelay(100 / portTICK_RATE_MS);
+    }
+
 }

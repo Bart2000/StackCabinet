@@ -43,6 +43,7 @@ sealed class ViewStateComponents {
 sealed class ViewStateScreen {
     object Grid : ViewStateScreen()
     object Components : ViewStateScreen()
+    object Settings: ViewStateScreen()
 }
 
 data class UiStateGrid(

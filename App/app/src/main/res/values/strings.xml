@@ -3,8 +3,9 @@
 
     <string name="txt_screen_setup">Setup</string>
     <string name="txt_screen_boot">Booting</string>
-    <string name="txt_screen_component">List Components</string>
-    <string name="txt_screen_grid">Overview Cabinets</string>
+    <string name="txt_screen_component">Components</string>
+    <string name="txt_screen_grid">Cabinets</string>
+    <string name="txt_screen_settings">Settings</string>
 
     <string name="txt_btn_bt_on">Turn Bluetooth on</string>
     <string name="txt_btn_bt_off">Turn Bluetooth off</string>
@@ -15,8 +16,11 @@
 
     <string name="txt_topBar_setup">Setup a new StackCabinet</string>
 
+    <!-- String for Errors in permissions and runtime    -->
     <string name="txt_unable_to_run">This device does not satisfy the required specifications to run this app. Missing Bluetooth. Please use a different device. Exiting the app now.</string>
     <string name="txt_title_unable_to_run">Unable to run app</string>
+    <string name="txt_permissions_denied">Some permissions where denied. The app cannot function without them. Please allow them to use the app. Under settings go to Permissions and allow permissions that are marked as not allowed.</string>
+    <string name="txt_btn_ask_permissions">Open settings</string>
 
     <!-- String for the Setup compose view   -->
     <string name="txt_btn_search_base">Search for Stack Cabinet Bases</string>
@@ -28,9 +32,19 @@
     <string name="txt_empty_overview">It looks like you have not placed a Cabinet, let\'s give that a go!</string>
     <string name="txt_title_add_component">Add a new component</string>
     <string name="txt_add_component">Add a new component to your inventory</string>
-    <string name="txt_empty_list_components">It looks like you don\'t have any componets in your inventor, let\'s add some!</string>
+    <string name="txt_empty_list_components">It looks like you don\'t have any components in your inventor, let\'s add some!</string>
     <string name="txt_could_not_load">Unable to load, please try again</string>
-    <string name="txt_unknown">Unkown error</string>
+    <string name="txt_unknown">Unknown error</string>
     <string name="txt_title_edit_component">Edit a Component</string>
     <string name="txt_edit_component">Edit the properties of this component</string>
+    <string name="txt_loading">Loading, please wait</string>
+    <string name="txt_connecting">Connecting, please wait</string>
+    <string name="txt_add_component_btn">Add component to your inventory</string>
+    <string name="txt_edit_component_btn">Update component</string>
+
+    <string name="txt_title_enable_bluetooth">Please Enable Bluetooth</string>
+    <string name="txt_enable_bluetooth">It looks like we are unable to enable Bluetooth automatically, please enable bluetooth and the close this pop-up</string>
+    <string name="txt_btn_i_understand">Oke, I understand</string>
+    <string name="txt_btn_done">Done, continue</string>
+
 </resources>

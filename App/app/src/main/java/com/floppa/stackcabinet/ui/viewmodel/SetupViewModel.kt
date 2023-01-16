@@ -8,7 +8,7 @@ import com.floppa.stackcabinet.repository.BluetoothRepository
 
 
 class SetupViewModel(context: Context) : ViewModel() {
-    private val repository = BluetoothRepository(context = context)
+    private val repository = BluetoothRepository(context = context, handler = null)
 
     // List of found StackCabinet Bases
     var foundDevice = mutableStateListOf<BluetoothDevice>()

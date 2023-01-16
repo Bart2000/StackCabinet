@@ -15,17 +15,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.floppa.stackcabinet.R
 import com.floppa.stackcabinet.ui.BootCompose
-import com.floppa.stackcabinet.ui.ComponentsCompose
 import com.floppa.stackcabinet.ui.GridCompose
 import com.floppa.stackcabinet.ui.SetupCompose
-import com.floppa.stackcabinet.ui.viewmodel.GridViewModel
 import com.floppa.stackcabinet.ui.viewmodel.SetupViewModel
 
 @Composable
 fun CompanionNavHost() {
     val navController = rememberNavController()
     val context = LocalContext.current
-    val viewModel: GridViewModel = hiltViewModel()
     NavHost(
         navController = navController,
         startDestination = Screens.Boot.route
@@ -57,22 +54,11 @@ fun CompanionNavHost() {
             }
         }
 
-        composable(Screens.Grid.route) {
+        composable(Screens.Main.route) {
             Scaffold {
                 Column(modifier = Modifier.padding(it)) {
                     GridCompose(
-                        navController = navController,
-                        viewModel = viewModel)
-                }
-            }
-        }
-
-        composable(Screens.Components.route) {
-            Scaffold {
-                Column(modifier = Modifier.padding(it)) {
-                    ComponentsCompose(
-                        navController = navController,
-                        viewModel = viewModel)
+                        viewModel = hiltViewModel())
                 }
             }
         }

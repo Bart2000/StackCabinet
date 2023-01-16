@@ -126,12 +126,12 @@ fun SetupCompose(
 
 
     /**
-     * When a device is connected show dialog and navigate to the next screen, [Screens.Grid.route].
+     * When a device is connected show dialog and navigate to the next screen, [Screens.Main.route].
      * Backstack is popped, no way to go back to the [SetupCompose] screen.
      */
     if (bounded) {
         ShowDialog{
-            navController.navigate(Screens.Grid.route) {
+            navController.navigate(Screens.Main.route) {
                 popUpTo(0)
             }
         }

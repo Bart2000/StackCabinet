@@ -4,7 +4,7 @@ import com.floppa.stackcabinet.database.Resource
 import com.floppa.stackcabinet.models.Component
 import kotlinx.coroutines.flow.Flow
 
-interface DatabaseRepositoryInterface {
+interface ComponentInterface {
     suspend fun getListComponents(): Flow<Resource<List<Component>>>
 
     suspend fun addComponents(component: Component)

@@ -53,8 +53,6 @@ fun GridCompose(
     viewModel: GridViewModel,
     lifeCycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
 ) {
-
-
     DisposableEffect(lifeCycleOwner) {
         // Create an observer that triggers our remembered callbacks
         // for sending analytics events
@@ -211,6 +209,14 @@ fun SetupScaffold(
                     selected = (screen == ViewStateScreen.Components),
                     onClick = {
                         viewModel.setRoute(Screens.Components)
+                    })
+                BottomNavigationItem(icon = {
+                    Screens.Settings.icon?.let { Icon(imageVector = it, "") }
+                },
+                    label = { Text(text = stringResource(Screens.Settings.labelResourceId)) },
+                    selected = (screen == ViewStateScreen.Settings),
+                    onClick = {
+                        viewModel.setRoute(Screens.Settings)
                     })
             }
         }

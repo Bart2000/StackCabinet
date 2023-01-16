@@ -7,10 +7,10 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "componentTable")
 data class Component(
     @ColumnInfo(name = "description")
-    val description: String,
+    var description: String,
 
     @ColumnInfo(name = "type")
-    val type: ComponentsTypes,
+    var type: ComponentsTypes,
 
     @ColumnInfo(name = "cabinetId")
     val cabinetId: Int?,

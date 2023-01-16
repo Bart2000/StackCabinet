@@ -1,6 +1,9 @@
-package com.floppa.stackcabinet.models
+package com.floppa.stackcabinet.repository
 
 import com.floppa.stackcabinet.database.Resource
+import com.floppa.stackcabinet.models.Cabinet
+import com.floppa.stackcabinet.models.Direction
+import com.floppa.stackcabinet.models.cabinets.Colors
 import com.floppa.stackcabinet.models.cabinets.Square
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -16,13 +19,13 @@ class GridRepository {
             cabinets.clear()
             emit(Resource.Loading())
             // Make a Cabinet object for each index in the IntArray
-            graph.forEachIndexed { index, _ ->
+            graph.forEachIndexed { index, list ->
                 val cabinet = Square()
                 cabinet.id = index
+                cabinet.cabinetColor = Colors.values()[list[list.lastIndex]].color
                 cabinets.add(cabinet)
             }
             // Setup the base Cabinet
-            val cabinets = cabinets
             val base = cabinets[0]
             base.id = 255
             base.x = 0
@@ -30,27 +33,15 @@ class GridRepository {
             base.dir = Direction.RIGHT
             base.isBase = true
             base.visited = true
+            base.adjacent.add(getCabinetById(1))
 
             // Set cabinet nodes
-            graph.forEachIndexed { index, ints ->
-                val cabinet = cabinets[index]
-                val adjacent = ArrayList<Cabinet?>()
+            for (i in 1 until graph.size){
+                val nodes = graph[i]
+                val c = cabinets[i]
 
-                // For all elements in the index of the IntArray
-                ints.forEach {
-                    // Get the adjacent Cabinet
-                    val cab = getCabinetById(it)
-                    // Add it to a Arraylist
-                    if (cab != null) {
-                        adjacent.add(cab)
-                    } else {
-                        adjacent.add(null)
-                    }
-                    /**
-                     * This array is added to the Cabinet, this way a Cabinet has a list
-                     * of adjacent Cabinets.
-                     */
-                    cabinet.adjacent = adjacent
+                for (n in 0 until nodes.size - 2){
+                    c.adjacent.add(getCabinetById(nodes[n]))
                 }
             }
             calculatePositions()
@@ -62,9 +53,9 @@ class GridRepository {
 
         cabinets.forEachIndexed { indexCabinets, _ ->
             val cabinet = cabinets[indexCabinets]
-            val adjacent: ArrayList<Cabinet?>? = cabinet.adjacent
+            val adjacent = cabinet.adjacent
 
-            adjacent?.forEachIndexed { indexAdjacent, _ ->
+            adjacent.forEachIndexed { indexAdjacent, _ ->
                 val a = adjacent[indexAdjacent]
 
                 if (a != null) {
@@ -77,13 +68,6 @@ class GridRepository {
 
         }
     }
-
-//    @Composable
-//    fun Draw() {
-//        for (cabinet in cabinets) {
-//            cabinet.Draw(cabinet.x, cabinet.y, cabinet)
-//        }
-//    }
 
     private fun getCabinetById(id: Int): Cabinet? {
         for (cabinet in cabinets) {

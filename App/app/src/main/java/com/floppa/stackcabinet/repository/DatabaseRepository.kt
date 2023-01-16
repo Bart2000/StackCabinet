@@ -13,7 +13,7 @@ import javax.inject.Inject
 class DatabaseRepository
 @Inject constructor(
     private val componentsDao: ComponentDao,
-        ) : DatabaseRepositoryInterface {
+        ) : ComponentInterface {
 
     override suspend fun getListComponents(): Flow<Resource<List<Component>>> {
         return flow{
