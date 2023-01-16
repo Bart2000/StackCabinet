@@ -68,8 +68,13 @@ void app_main()
 
     while(1) 
     {
-        if(!gpio_get_level(GPIO_NUM_14)) 
+        if(!gpio_get_level(GPIO_NUM_23)) 
         {
+            gpio_set_level(GPIO_NUM_5, 0);
+            vTaskDelay(100);
+            gpio_set_level(GPIO_NUM_5, 1);
+            vTaskDelay(100);
+
             unsigned long time1 = esp_timer_get_time() / 1000ULL;
             std::string grid;
             sccp.identify(&grid);

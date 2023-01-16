@@ -47,18 +47,17 @@ void SCCP::initialize()
     uart_driver_install(UART_NUM, BUF_SIZE, BUF_SIZE, 20, &SCCP::uart_queue, 0);
 
     //uart_driver_install(UART_NUM_1, 256, 256, 0, NULL, 0);
-    gpio_set_direction(GPIO_NUM_14, GPIO_MODE_INPUT);
-    gpio_set_direction(GPIO_NUM_32, GPIO_MODE_OUTPUT);
-    gpio_set_direction(GPIO_NUM_27, GPIO_MODE_INPUT);
-    // Define transistor GPIO
-    gpio_set_direction(GPIO_NUM_5, GPIO_MODE_OUTPUT);
-    gpio_set_level(GPIO_NUM_5, 1);
-    // Defibe button GPIO, enable pull up
+    // Setup the button that start the identivication process
     gpio_set_direction(GPIO_NUM_23, GPIO_MODE_INPUT);
+    // Enable pull up
     gpio_pullup_en(GPIO_NUM_23);
+    
+    gpio_set_direction(GPIO_NUM_32, GPIO_MODE_OUTPUT);
+    // Transistor to power Cabs
+    gpio_set_direction(GPIO_NUM_5, GPIO_MODE_OUTPUT);
 
     gpio_set_level(GPIO_NUM_32, 1);
-    printf("Yes\n");
+    gpio_set_level(GPIO_NUM_5, 1);
 }
 
 uint8_t SCCP::identify(std::string* result) 
