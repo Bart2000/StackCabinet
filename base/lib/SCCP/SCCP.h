@@ -95,6 +95,7 @@ class SCCP
         uint8_t control_flag;
         SCCP();
         uint8_t identify(std::string* result);
+        Graph graph;
         void send(sccp_packet_t packet);
         static void receive_loop(void* handle);
         void sprod(uint8_t id, uint8_t product_id);
@@ -105,7 +106,7 @@ class SCCP
     private:
         uint8_t buffer[HEADER_SIZE + DATA_SIZE];
         uint8_t id;
-        Graph graph;
+
         void initialize();
         void encode(uint8_t* data, sccp_packet_t* packet);
         void decode(uint8_t* data, sccp_packet_t* packet);
