@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <avr/delay.h>
 #include <string.h>
+#include <NVM.h>
 
 #define HEADER_SIZE 2
 #define DATA_SIZE 16
@@ -33,6 +34,7 @@ enum Commands {
     INACK,
     OCAB,
     SLED,
+    SPROD,
     ACK,
     NACK
 };
@@ -90,21 +92,28 @@ class SCCP
         void inack(uint8_t* packet_data);
         void ocab(uint8_t* packet_data);
         void sled(uint8_t* packet_data);
+        void sprod(uint8_t* packet_data);
         uint8_t get_gate(uint8_t input);
+        void tmp_led(uint8_t n);
+
+        uint8_t buffer[HEADER_SIZE + DATA_SIZE]; // tmp public
+        void handle_command();
+
 
     private:
-        uint8_t buffer[HEADER_SIZE + DATA_SIZE];
+        NVM nvm;
+        //uint8_t buffer[HEADER_SIZE + DATA_SIZE];
         uint8_t buffer_length;
         uint8_t id;
+        uint8_t product_id;
         Type cab_type;
-        void handle_command();
+        
         void encode(uint8_t* data, sccp_packet_t* packet);
         void decode(uint8_t* data, sccp_packet_t* packet);
         void enable_rx();
         void disable_rx();
         void reset_tx();
         uint8_t tx_ready();
-        void tmp_led(uint8_t n);
         
 };
 

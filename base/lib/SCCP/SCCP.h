@@ -43,6 +43,7 @@ enum Command {
     INACK,
     OCAB,
     SLED,
+    SPROD,
     ACK,
     NACK
 };
@@ -97,6 +98,7 @@ class SCCP
         Graph graph;
         void send(sccp_packet_t packet);
         static void receive_loop(void* handle);
+        void sprod(uint8_t id, uint8_t product_id);
         void iack(uint8_t* packet_data);
         void inack(uint8_t* packet_data);
         void ack(uint8_t* packet_data);

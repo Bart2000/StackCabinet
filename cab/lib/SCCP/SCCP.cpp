@@ -9,6 +9,7 @@ sccp_command_t commands[] = {
     {&SCCP::inack, 0},
     {&SCCP::ocab, 0},
     {&SCCP::sled, 100},
+    {&SCCP::sprod, 0}
 };
 
 uint8_t gate_map[] = {GATE0, GATE1, GATE2, GATE3};
@@ -39,6 +40,8 @@ void SCCP::init()
 	baud *= (1024 + sigrow_value);                                  // Sum resolution + error
 	baud /= 1024;                                                   // Divide by resolution
 	USART0.BAUD = (int16_t)baud;                                    // Set adjusted baudrate
+
+    this->product_id = nvm.read_byte(PRODUCT_ADDR);
 }
 
 /**
@@ -146,14 +149,14 @@ void SCCP::icab(uint8_t* packet_data)
     // Check if gate is activated and no gate is configured as output
     if(!gates || PORTA.OUT & GATES) return;
     
+    // Get activated gate
     uint8_t gate = get_gate(gates);
-    //uint8_t gate = log(gates) / log(2);
 
     // Check if id has not been assigned yet
     if(!id) 
     {
         this->id = packet_data[0];
-        uint8_t data[] = {this->id, gate, this->cab_type};
+        uint8_t data[] = {this->id, gate, this->cab_type, this->product_id};
         send(sccp_packet_t(BASE_ID, IACK, sizeof(data), data));
     }
     else 
@@ -164,7 +167,7 @@ void SCCP::icab(uint8_t* packet_data)
 }
 
 /**
- *  * Method to for SCCP IACK. Currently, this method has no implementation. Its only use is to prevent offset issues in the command list.
+ *  * Method for SCCP IACK. Currently, this method has no implementation. Its only use is to prevent offset issues in the command list.
  * @param The data from the sccp_packet_t. This will be empty.
  */ 
 void SCCP::iack(uint8_t* packet_data) 
@@ -173,7 +176,7 @@ void SCCP::iack(uint8_t* packet_data)
 }
 
 /**
- * Method to for SCCP INACK. Currently, this method has no implementation. Its only use is to prevent offset issues in the command list.
+ * Method for SCCP INACK. Currently, this method has no implementation. Its only use is to prevent offset issues in the command list.
  * @param The data from the sccp_packet_t. This will be empty.
  */ 
 void SCCP::inack(uint8_t* packet_data) 
@@ -191,7 +194,7 @@ void SCCP::ocab(uint8_t* packet_data)
 }
 
 /**
- * Method to for SCCP ACK. Currently, this method has no implementation. Its only use is to prevent offset issues in the command list.
+ * Method for SCCP ACK. Currently, this method has no implementation. Its only use is to prevent offset issues in the command list.
  * @param The data from the sccp_packet_t. This will contain the RGB values and the leds to be turned on.
  */ 
 void SCCP::sled(uint8_t* packet_data) 
@@ -200,6 +203,28 @@ void SCCP::sled(uint8_t* packet_data)
     tmp_led(1);
     uint8_t data[] = {id, SLED};
     send(sccp_packet_t(BASE_ID, ACK, sizeof(data), data));
+}
+
+/**
+ * Method for SCCP SPROD. Sets the product id in Non Volatile Memory EEPROM. 
+ * @param packet_data The data from the sccp_packet_t. This will contain the product id to set. 
+ */
+void SCCP::sprod(uint8_t* packet_data) 
+{
+    // Get product id from packet data
+    uint8_t product_id = packet_data[0];
+    this->product_id = product_id;
+    uint8_t data[] = {id, SPROD};
+    
+    // Write to EEPROM
+    if(nvm.write_byte(PRODUCT_ADDR_FLAG, 1) && nvm.write_byte(PRODUCT_ADDR, this->product_id))
+    {
+        send(sccp_packet_t(BASE_ID, ACK, sizeof(data), data));
+    }
+    else 
+    {
+        send(sccp_packet_t(BASE_ID, NACK, sizeof(data), data));
+    }
 }
 
 /**
