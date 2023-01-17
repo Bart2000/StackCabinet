@@ -6,12 +6,10 @@
 #include <avr/eeprom.h>
 
 #define PAGE_SIZE 32
-#define PRODUCT_SET_ADDR 0
-#define LED_SET_ADDR 4
-#define PRODUCT_ADDR 8 
-#define LED_ADDR 12
-
-uint8_t EEMEM product_id = 0;
+#define PRODUCT_ADDR_FLAG 0
+#define LED_ADDR_FLAG 1
+#define PRODUCT_ADDR 2 
+#define LED_ADDR 3
 
 class NVM 
 {
@@ -21,7 +19,7 @@ class NVM
         uint8_t read_byte(uint8_t address);
 
     private:
-        uint8_t is_eeprom_ready();
+        uint8_t eeprom_is_busy();
 };
 
 #endif

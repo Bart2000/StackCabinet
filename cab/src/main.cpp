@@ -12,68 +12,23 @@ void setup();
 
 SCCP sccp;
 
-
 int main(void) {
     setup();
     sccp.init();
-    uint8_t addr = 0x0A;
-    uint8_t val = 2;
 
-    //uint8_t bruh = eeprom_read_byte((uint8_t*)addr);
-    //sccp.tmp_led(bruh);
-    //eeprom_update_byte((uint8_t*)addr, (uint8_t)3);
-    //eeprom_write_byte((uint8_t*)&addr2, 3);
+    _delay_ms(1000);
 
-    //uint8_t test = eeprom_read_byte((uint8_t*)addr);
-    //eeprom_write_byte((uint8_t*)&addr, 0x03);
+    uint8_t packet[18] = {0x00, 0x21, 0x01};
+    memcpy(sccp.buffer, packet, sizeof(packet));
 
-    //NVM nvm;
-    
-    //nvm.write_byte(PRODUCT_ADDR, (uint8_t)4);
-    //nvm.write_byte(PRODUCT_SET_ADDR, (uint8_t)2);
-    
-    //uint8_t test = nvm.read_byte(PRODUCT_ADDR);
+    sccp.handle_command();
 
-    //uint8_t test = eeprom_read_byte((uint8_t*)&addr);
+    _delay_ms(1000);
 
-    //sccp.tmp_led(test);
+    uint8_t packet2[18] = {0x01, 0x71, 0x04};
+    memcpy(sccp.buffer, packet2, sizeof(packet2));
 
-
-
-
-    uint8_t bruh = 0;
-    //memcpy(&bruh, (uint16_t*)0x140A, 1);
-
-    bruh = *(uint16_t*)(EEPROM_START + 10);
-
-    if(bruh < 5) {
-        sccp.tmp_led(bruh);
-    }
-
-    //memcpy((uint8_t*)0x140A, &val, 1);
-    //CCP = CCP_SPM_gc;
-
-    *(uint16_t*)(EEPROM_START + 10) = 3;
-
-    //NVMCTRL.CTRLA = NVMCTRL_CMD_PAGEERASEWRITE_gc;
-    _PROTECTED_WRITE_SPM(NVMCTRL.CTRLA, NVMCTRL_CMD_PAGEERASEWRITE_gc);
-
-    while (NVMCTRL.STATUS & NVMCTRL_EEBUSY_bm);
-
-    uint8_t test = *(uint16_t*)(EEPROM_START + 10);
-    //memcpy(&test, (uint16_t*)0x140A, 1);
-
-    sccp.tmp_led(test);
-
-
-    // product_id = 2;
-    // uint8_t bruh = eeprom_read_byte(&product_id);
-    // sccp.tmp_led(bruh);
-    // eeprom_write_byte(&product_id, 3);
-
-    // uint8_t test = eeprom_read_byte(&product_id);
-
-    // sccp.tmp_led(test);
+    sccp.handle_command();
 
     while(1);
 }
