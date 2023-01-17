@@ -7,7 +7,6 @@
 #include <SCCP.h>
 #include <string.h>
 #include <NVM.h>
-#include <eeprom.h>
 
 void setup();
 
@@ -39,21 +38,42 @@ int main(void) {
 
     //sccp.tmp_led(test);
 
+
+
+
     uint8_t bruh = 0;
-    memcpy(&bruh, (uint8_t*)0x140A, 1);
+    //memcpy(&bruh, (uint16_t*)0x140A, 1);
 
-    sccp.tmp_led(bruh);
+    bruh = *(uint16_t*)(EEPROM_START + 10);
 
-    memcpy((uint8_t*)0x140A, &val, 1);
-    CCP = CCP_SPM_gc;
-    NVMCTRL.CTRLA = NVMCTRL_CMD_PAGEWRITE_gc;
+    if(bruh < 5) {
+        sccp.tmp_led(bruh);
+    }
+
+    //memcpy((uint8_t*)0x140A, &val, 1);
+    //CCP = CCP_SPM_gc;
+
+    *(uint16_t*)(EEPROM_START + 10) = 3;
+
+    //NVMCTRL.CTRLA = NVMCTRL_CMD_PAGEERASEWRITE_gc;
+    _PROTECTED_WRITE_SPM(NVMCTRL.CTRLA, NVMCTRL_CMD_PAGEERASEWRITE_gc);
 
     while (NVMCTRL.STATUS & NVMCTRL_EEBUSY_bm);
 
-    uint8_t test = 0;
-    memcpy(&test, (uint8_t*)0x140A, 1);
+    uint8_t test = *(uint16_t*)(EEPROM_START + 10);
+    //memcpy(&test, (uint16_t*)0x140A, 1);
 
     sccp.tmp_led(test);
+
+
+    // product_id = 2;
+    // uint8_t bruh = eeprom_read_byte(&product_id);
+    // sccp.tmp_led(bruh);
+    // eeprom_write_byte(&product_id, 3);
+
+    // uint8_t test = eeprom_read_byte(&product_id);
+
+    // sccp.tmp_led(test);
 
     while(1);
 }

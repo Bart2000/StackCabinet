@@ -11,6 +11,8 @@
 #define PRODUCT_ADDR 8 
 #define LED_ADDR 12
 
+uint8_t EEMEM product_id = 0;
+
 class NVM 
 {
     public:
