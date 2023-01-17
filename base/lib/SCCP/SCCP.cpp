@@ -12,6 +12,7 @@ sccp_command_t commands[] = {
     {&SCCP::inack, 0},
     {NULL, 0},
     {NULL, 100},
+    {NULL, 100},
     {&SCCP::ack, 100},
 };
 
@@ -47,7 +48,8 @@ void SCCP::initialize()
     uart_driver_install(UART_NUM, BUF_SIZE, BUF_SIZE, 20, &SCCP::uart_queue, 0);
 
     //uart_driver_install(UART_NUM_1, 256, 256, 0, NULL, 0);
-    gpio_set_direction(GPIO_NUM_14, GPIO_MODE_INPUT);
+    gpio_set_direction(GPIO_NUM_23, GPIO_MODE_INPUT);
+    gpio_pullup_en(GPIO_NUM_23);
     gpio_set_direction(GPIO_NUM_32, GPIO_MODE_OUTPUT);
     gpio_set_direction(GPIO_NUM_27, GPIO_MODE_INPUT);
 
@@ -69,7 +71,6 @@ uint8_t SCCP::identify(std::string* result)
 
     // Identify first cabinet with broadcasted ICAB message
     uint8_t data[] = {this->id};
-    printf("bruh1\n");
     send(sccp_packet_t(BROADCAST_ID, ICAB, sizeof(data), data));
 
     // If response is IACK
@@ -77,9 +78,11 @@ uint8_t SCCP::identify(std::string* result)
     {
         uint8_t id = response.data[0];
         uint8_t gate = response.data[1];
+        uint8_t product_id = response.data[3];
 
         // Add cabinet to grid
         cab_obj[gate] = BASE_ID;
+        cab_obj[4] = product_id;
         std::vector<uint8_t> cab_vector(cab_obj, cab_obj + sizeof(cab_obj));
         this->graph.push_back(cab_vector);
 
@@ -124,11 +127,13 @@ uint8_t SCCP::identify(std::string* result)
                 // Check if cabinet at gate responded with IACK
                 if(get_response(&response) && response.cmd_id == IACK) 
                 {
-                    uint8_t id = response.data[0];
+                    uint8_t id = 4;//response.data[0];
                     uint8_t gate = response.data[1];
+                    uint8_t product_id = response.data[3];                    
 
                     // Add cabinet to graph
                     cab_obj[gate] = c;
+                    cab_obj[4] = product_id;
                     std::vector<uint8_t> cab_vector(cab_obj, cab_obj + sizeof(cab_obj));
                     this->graph.push_back(cab_vector);
 
@@ -140,6 +145,7 @@ uint8_t SCCP::identify(std::string* result)
                 }
                 else if(response.cmd_id == INACK) 
                 {
+                    printf("asdasd\n");
                     uint8_t id = response.data[0];
                     uint8_t gate = response.data[1];
 
@@ -287,6 +293,12 @@ uint8_t SCCP::get_response(sccp_packet_t* response)
 
     this->control_flag = 0;
     return 1;
+}
+
+void SCCP::sprod(uint8_t id, uint8_t product_id) 
+{
+    uint8_t data[] = {product_id};
+    send(sccp_packet_t(id, SPROD, sizeof(data), data));
 }
 
 void SCCP::iack(uint8_t* data) 

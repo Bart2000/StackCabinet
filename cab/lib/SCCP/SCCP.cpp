@@ -42,7 +42,6 @@ void SCCP::init()
 	USART0.BAUD = (int16_t)baud;                                    // Set adjusted baudrate
 
     this->product_id = nvm.read_byte(PRODUCT_ADDR);
-    tmp_led(this->product_id);
 }
 
 /**

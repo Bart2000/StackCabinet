@@ -11,17 +11,7 @@
 #include "driver/uart.h"
 #include <soc/uart_reg.h>
 
-#define BAUDRATE 115200
-#define BUF_SIZE 2048
-#define UART_NUM UART_NUM_1
-#define TX_GPIO 10
-#define RX_GPIO 9
-#define TIMOUT_MS 20
-
 SCCP sccp;
-TaskHandle_t handle;
-static intr_handle_t handle_console;
-static QueueHandle_t uart_queue;
 
 extern "C"
 {
@@ -30,9 +20,11 @@ extern "C"
 
 void app_main() 
 {   
+    uint8_t count = 0;
+
     while(1) 
     {
-        if(!gpio_get_level(GPIO_NUM_14)) 
+        if(!gpio_get_level(GPIO_NUM_23)) 
         {
             unsigned long time1 = esp_timer_get_time() / 1000ULL;
             std::string grid;
