@@ -1,8 +1,76 @@
 #include "Bluetooth.h"
 
-void spp_init_evt(const char *name);
+SCCP* Bluetooth::sccp;
 
-void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param)
+Bluetooth::Bluetooth(SCCP* sccp)
+{
+    Bluetooth::sccp = sccp; 
+
+    char bda_str[18] = {0};
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
+    {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
+
+    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
+
+    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
+
+    esp_bt_controller_init(&bt_cfg);
+
+    esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT);
+
+    esp_bluedroid_init();
+
+    esp_bluedroid_enable();
+
+    esp_bt_gap_register_callback(esp_bt_gap_cb);
+
+    esp_spp_register_callback(esp_spp_cb);
+
+    esp_spp_init(esp_spp_mode);
+
+    printf("Own address:[%s]\r\n", bda2str((uint8_t *)esp_bt_dev_get_address(), bda_str, sizeof(bda_str)));
+
+#if (CONFIG_BT_SSP_ENABLED == true)
+    /* Set default parameters for Secure Simple Pairing */
+    esp_bt_sp_param_t param_type = ESP_BT_SP_IOCAP_MODE;
+    esp_bt_io_cap_t iocap = ESP_BT_IO_CAP_IO;
+    esp_bt_gap_set_security_param(param_type, &iocap, sizeof(uint8_t));
+#endif
+
+    /*
+     * Set default parameters for Legacy Pairing
+     * Use variable pin, input pin code when pairing
+     */
+    esp_bt_pin_type_t pin_type = ESP_BT_PIN_TYPE_VARIABLE;
+    esp_bt_pin_code_t pin_code;
+    esp_bt_gap_set_pin(pin_type, 0, pin_code);
+
+    // ESP_LOGI(SETUP_BT_TAG, "Own address:[%s]", bda2str((uint8_t *)esp_bt_dev_get_address(), bda_str, sizeof(bda_str)));
+}
+
+void Bluetooth::init(SCCP *sccp)
+{
+    // Bluetooth::sccp = sccp; 
+    // Add LED object
+}
+
+/**
+ * Setup the Bluetooth SPP service
+ * @param name pointer to the name for the Bluetooth device
+ */
+void Bluetooth::spp_init_evt(const char *name)
+{
+    esp_bt_dev_set_device_name(name);
+    esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
+    esp_spp_start_srv(sec_mask, role_slave, 0, SPP_SERVER_NAME);
+}
+
+void Bluetooth::esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param)
 {
 
     ESP_LOGI(GAP_CB_TAG, "Fuction: esp_bt_gap_cb()");
@@ -48,7 +116,7 @@ void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param)
     return;
 }
 
-void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
+void Bluetooth::esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
 {
     switch (event)
     {
@@ -71,13 +139,24 @@ void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
         break;
 
     case ESP_SPP_SRV_OPEN_EVT: // After connection is established, short before data is received
-        // When SPP Server connection open, the event comes
-        // In use in Acceptor
-            ESP_LOGI(SPP_CB_TAG, "ESP_SPP_SRV_OPEN_EVT");
+                               // When SPP Server connection open, the event comes
+                               // In use in Acceptor
+        printf("ESP_SPP_SRV_OPEN_EVT \r\n");
 
         if (true)
         {
-            char *c = "REQUEST_GRID|{{255}, {0, 255, 2, 3, 0, 0}, {0, 0, 4, 1, 0, 0}, {0, 1, 4, 0, 0, 0}, {0, 3, 2, 0, 0, 0}}";
+            // if (sccp->grid.size())
+            //SCCP sccp = *Bluetooth::sccp;
+            printf("size of grid %d\n", Bluetooth::sccp->graph.size());
+
+            if (Bluetooth::sccp->graph.size() == 0){
+                String result;
+                Bluetooth::sccp->identify(&result);
+                printf("Data for app: %s\n", result);
+            }
+
+
+            char *c = "REQUEST_GRID|[[255, 0], [0, 255, 2, 3, 0, 0], [0, 0, 4, 1, 0, 0], [0, 1, 4, 0, 0, 0], [0, 3, 2, 0, 0, 0]]";
             uint8_t *u = (uint8_t *)c;
 
             esp_spp_write(param->srv_open.handle, strlen(c), u);
@@ -89,77 +168,13 @@ void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
     }
 }
 
-void esp_setup_bt()
-{
-    char bda_str[18] = {0};
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
-    {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
-
-    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
-
-    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-
-    esp_bt_controller_init(&bt_cfg);
-
-    esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT);
-
-    esp_bluedroid_init();
-
-    esp_bluedroid_enable();
-
-    esp_bt_gap_register_callback(esp_bt_gap_cb);
-
-    esp_spp_register_callback(esp_spp_cb);
-
-    esp_spp_init(esp_spp_mode);
-
-#if (CONFIG_BT_SSP_ENABLED == true)
-    /* Set default parameters for Secure Simple Pairing */
-    esp_bt_sp_param_t param_type = ESP_BT_SP_IOCAP_MODE;
-    esp_bt_io_cap_t iocap = ESP_BT_IO_CAP_IO;
-    esp_bt_gap_set_security_param(param_type, &iocap, sizeof(uint8_t));
-#endif
-
-    /*
-     * Set default parameters for Legacy Pairing
-     * Use variable pin, input pin code when pairing
-     */
-    esp_bt_pin_type_t pin_type = ESP_BT_PIN_TYPE_VARIABLE;
-    esp_bt_pin_code_t pin_code;
-    esp_bt_gap_set_pin(pin_type, 0, pin_code);
-
-    ESP_LOGI(SETUP_BT_TAG, "Own address:[%s]", bda2str((uint8_t *)esp_bt_dev_get_address(), bda_str, sizeof(bda_str)));
-}
-
-// void Bluetooth::init(SCCP *sccp, led_strip_t *led)
-// {
-// this->sccp = sccp;
-// this->init = led;
-// }
-
-/**
- * Setup the Bluetooth SPP service
- * @param name pointer to the name for the Bluetooth device
- */
-void spp_init_evt(const char *name)
-{   
-    esp_bt_dev_set_device_name(name);
-    esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
-    esp_spp_start_srv(sec_mask, role_slave, 0, SPP_SERVER_NAME);
-}
-
 /**
  * Convert the Bluetooth Device Address to a String
  * @param bda pointer to the Bluetooth Device Address
  * @param str pointer to the location to store the string of the Bluetooth Device Address
  * @param size size of the Bluetooth Device Address
  */
-char* bda2str(uint8_t *bda, char *str, size_t size)
+char *Bluetooth::bda2str(uint8_t *bda, char *str, size_t size)
 {
     if (bda == NULL || str == NULL || size < 18)
     {
@@ -169,6 +184,5 @@ char* bda2str(uint8_t *bda, char *str, size_t size)
     uint8_t *p = bda;
     sprintf(str, "%02x:%02x:%02x:%02x:%02x:%02x",
             p[0], p[1], p[2], p[3], p[4], p[5]);
-    printf("%s", str);
     return str;
 }

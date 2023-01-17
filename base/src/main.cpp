@@ -20,10 +20,8 @@ extern "C"
 
 void app_main()
 {
-    printf("Hello world\n");
-    esp_setup_bt();
     SCCP sccp;
-    // Bluetooth esp_bt;
+    Bluetooth esp_bt(&sccp);
 
     // led_strip_t *test = led_strip_init(RMT_CHANNEL_0, GPIO_NUM_18, 3);
     // gpio_set_direction(GPIO_NUM_18, GPIO_MODE_OUTPUT);
