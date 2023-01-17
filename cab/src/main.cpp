@@ -16,20 +16,6 @@ int main(void) {
     setup();
     sccp.init();
 
-    _delay_ms(1000);
-
-    uint8_t packet[18] = {0x00, 0x21, 0x01};
-    memcpy(sccp.buffer, packet, sizeof(packet));
-
-    sccp.handle_command();
-
-    _delay_ms(1000);
-
-    uint8_t packet2[18] = {0x01, 0x71, 0x04};
-    memcpy(sccp.buffer, packet2, sizeof(packet2));
-
-    sccp.handle_command();
-
     while(1);
 }
 
