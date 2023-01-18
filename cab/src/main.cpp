@@ -6,14 +6,20 @@
 #include <avr/interrupt.h>
 #include <SCCP.h>
 #include <string.h>
+#include <LED.h>
 
 void setup();
 
 SCCP sccp;
+LED led;
 
 int main(void) {
-    setup();
+    //setup();
     //sccp.init();
+
+    led.init();
+    color_t red = {255, 255, 0};
+    led.set_led(red, 255, 4);
 
     while(1);
 }
@@ -48,12 +54,13 @@ void setup()
     TCA0.SPLIT.CTRLB |= TCA_SPLIT_LCMP0EN_bm | TCA_SPLIT_LCMP1EN_bm | TCA_SPLIT_LCMP2EN_bm | TCA_SPLIT_HCMP0EN_bm | TCA_SPLIT_HCMP1EN_bm | TCA_SPLIT_HCMP2EN_bm;
     TCA0.SPLIT.CTRLA |= TCA_SPLIT_CLKSEL_DIV16_gc | TCA_SPLIT_ENABLE_bm;
 
-
-    TCB0.CCMP = 0x80FF;
+    // Configure TCB0 
+    TCB0.CCMP = 0x00FF;                                 
     TCB0.CTRLA |= TCB_CLKSEL_CLKDIV2_gc | TCB_ENABLE_bm;
     TCB0.CTRLB |= TCB_CCMPEN_bm;
     TCB0.CTRLB |= TCB_CNTMODE_PWM8_gc;
 
+    return;
 
     int count = 0;
     int color = 0;
