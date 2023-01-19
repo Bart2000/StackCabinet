@@ -1,10 +1,12 @@
 #include "Bluetooth.h"
+#include <string.h>
+using namespace std;
 
-SCCP* Bluetooth::sccp;
+SCCP *Bluetooth::sccp;
 
-Bluetooth::Bluetooth(SCCP* sccp)
+Bluetooth::Bluetooth(SCCP *sccp)
 {
-    Bluetooth::sccp = sccp; 
+    Bluetooth::sccp = sccp;
 
     char bda_str[18] = {0};
     esp_err_t ret = nvs_flash_init();
@@ -55,7 +57,7 @@ Bluetooth::Bluetooth(SCCP* sccp)
 
 void Bluetooth::init(SCCP *sccp)
 {
-    // Bluetooth::sccp = sccp; 
+    // Bluetooth::sccp = sccp;
     // Add LED object
 }
 
@@ -146,20 +148,21 @@ void Bluetooth::esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
         if (true)
         {
             // if (sccp->grid.size())
-            //SCCP sccp = *Bluetooth::sccp;
+            // SCCP sccp = *Bluetooth::sccp;
             printf("size of grid %d\n", Bluetooth::sccp->graph.size());
+            std::string result;
+            if (Bluetooth::sccp->graph.size() < 2)
+            {
 
-            if (Bluetooth::sccp->graph.size() == 0){
-                String result;
-                Bluetooth::sccp->identify(&result);
-                printf("Data for app: %s\n", result);
+                Bluetooth::sccp->identify();
+                printf("Data for app: %s\n", result.c_str());
             }
+            Bluetooth::sccp->graph_to_json(&result);
 
+            // char *c = "REQUEST_GRID|[[255, 0], [0, 255, 2, 3, 0, 0], [0, 0, 4, 1, 0, 0], [0, 1, 4, 0, 0, 0], [0, 3, 2, 0, 0, 0]]";
+            uint8_t *u = (uint8_t *)result.c_str();
 
-            char *c = "REQUEST_GRID|[[255, 0], [0, 255, 2, 3, 0, 0], [0, 0, 4, 1, 0, 0], [0, 1, 4, 0, 0, 0], [0, 3, 2, 0, 0, 0]]";
-            uint8_t *u = (uint8_t *)c;
-
-            esp_spp_write(param->srv_open.handle, strlen(c), u);
+            esp_spp_write(param->srv_open.handle, strlen(result.c_str()), u);
             // saveData(SEND_DATA, strlen(c), u);
         }
         break;
