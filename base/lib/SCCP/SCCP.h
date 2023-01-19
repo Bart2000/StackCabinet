@@ -30,6 +30,7 @@
 #define BAUDRATE 115200
 
 using Graph = std::vector<std::vector<uint8_t>>;
+using namespace std;
 //using json = nlohmann::json;
 
 class SCCP;
@@ -94,7 +95,7 @@ class SCCP
         static TaskHandle_t handle;
         uint8_t control_flag;
         SCCP();
-        uint8_t identify(std::string* result);
+        uint8_t identify();
         Graph graph;
         void send(sccp_packet_t packet);
         static void receive_loop(void* handle);
@@ -102,6 +103,7 @@ class SCCP
         void iack(uint8_t* packet_data);
         void inack(uint8_t* packet_data);
         void ack(uint8_t* packet_data);
+        void graph_to_json(string* result);
 
     private:
         uint8_t buffer[HEADER_SIZE + DATA_SIZE];

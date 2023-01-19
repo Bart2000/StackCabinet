@@ -56,37 +56,16 @@ void app_main()
     {
         if (!gpio_get_level(GPIO_NUM_23))
         {
-            gpio_set_level(GPIO_NUM_5, 0);
-            vTaskDelay(100);
-            gpio_set_level(GPIO_NUM_5, 1);
-            vTaskDelay(100);
-
             unsigned long time1 = esp_timer_get_time() / 1000ULL;
             std::string grid;
-            sccp.identify(&grid);
+            std::cout << esp_get_free_heap_size() << std::endl;
+            sccp.identify();
+            std::cout << esp_get_free_heap_size() << std::endl;
+            sccp.graph_to_json(&grid);
             std::cout << grid;
             printf("Time: %ld\n", (long int)((esp_timer_get_time() / 1000ULL) - time1));
             vTaskDelay(100);
         }
-        if (!gpio_get_level(GPIO_NUM_23))
-        {
-            gpio_set_level(GPIO_NUM_5, 0);
-            vTaskDelay(100);
-            gpio_set_level(GPIO_NUM_5, 1);
-            // After reboot start SCCP identify for all cabs
-        }
-        // if(!gpio_get_level(GPIO_NUM_14))
-        // {
-        //     uint8_t sled[2] = {0x01, 0x60};
-        //     uart_write_bytes(UART_NUM, (const  char*)sled, sizeof(sled));
-        //     vTaskDelay(200);
-        // }
-        // if(!gpio_get_level(GPIO_NUM_27))
-        // {
-        //     uint8_t sled[2] = {0x02, 0x60};
-        //     uart_write_bytes(UART_NUM, (const  char*)sled, sizeof(sled));
-        //     vTaskDelay(200);
-        // }
         vTaskDelay(1);
     }
 }

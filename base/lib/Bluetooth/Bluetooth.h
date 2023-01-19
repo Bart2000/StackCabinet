@@ -1,6 +1,7 @@
 #ifndef BLEUTOOTH_H    // To make sure you don't declare the function more than once by including the header multiple times.
 #define BLEUTOOTH_H
 
+#include <stdio.h>
 #include "esp_log.h"
 #include "esp_bt.h"
 #include "esp_bt_main.h"
@@ -9,6 +10,7 @@
 #include "esp_spp_api.h"
 #include "nvs.h"
 #include "nvs_flash.h"
+
 #include <led_strip.h>
 #include <SCCP.h>
 
