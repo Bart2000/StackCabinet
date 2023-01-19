@@ -1,0 +1,21 @@
+{
+    "project_name":       "bootloader",
+    "project_path":       "/home/bart/.platformio/packages/framework-espidf/components/bootloader/subproject",
+    "build_dir":          "/home/bart/Repos/StackCabinet/base/.pio/build/esp-wrover-kit/bootloader",
+    "config_file":        "/home/bart/Repos/StackCabinet/base/sdkconfig.esp-wrover-kit",
+    "config_defaults":    "",
+    "app_elf":            "bootloader.elf",
+    "app_bin":            "bootloader.bin",
+    "git_revision":       "4.4.2",
+    "target":             "esp32",
+    "rev":                "0",
+    "phy_data_partition": "",
+    "monitor_baud" :      "115200",
+    "monitor_toolprefix": "xtensa-esp32-elf-",
+    "config_environment" : {
+        "COMPONENT_KCONFIGS" : "/home/bart/.platformio/packages/framework-espidf/components/efuse/Kconfig;/home/bart/.platformio/packages/framework-espidf/components/esp32/Kconfig;/home/bart/.platformio/packages/framework-espidf/components/esp_common/Kconfig;/home/bart/.platformio/packages/framework-espidf/components/esp_hw_support/Kconfig;/home/bart/.platformio/packages/framework-espidf/components/esp_system/Kconfig;/home/bart/.platformio/packages/framework-espidf/components/freertos/Kconfig;/home/bart/.platformio/packages/framework-espidf/components/hal/Kconfig;/home/bart/.platformio/packages/framework-espidf/components/log/Kconfig;/home/bart/.platformio/packages/framework-espidf/components/newlib/Kconfig;/home/bart/.platformio/packages/framework-espidf/components/spi_flash/Kconfig",
+        "COMPONENT_KCONFIGS_PROJBUILD" : "/home/bart/.platformio/packages/framework-espidf/components/bootloader/Kconfig.projbuild;/home/bart/.platformio/packages/framework-espidf/components/esp_rom/Kconfig.projbuild;/home/bart/.platformio/packages/framework-espidf/components/esptool_py/Kconfig.projbuild;/home/bart/.platformio/packages/framework-espidf/components/partition_table/Kconfig.projbuild"
+    },
+    "build_components" : [ "bootloader", "bootloader_support", "efuse", "esp32", "esp_common", "esp_hw_support", "esp_rom", "esp_system", "esptool_py", "freertos", "hal", "log", "main", "micro-ecc", "newlib", "partition_table", "soc", "spi_flash", "xtensa", "" ],
+    "build_component_paths" : [ "/home/bart/.platformio/packages/framework-espidf/components/bootloader", "/home/bart/.platformio/packages/framework-espidf/components/bootloader_support", "/home/bart/.platformio/packages/framework-espidf/components/efuse", "/home/bart/.platformio/packages/framework-espidf/components/esp32", "/home/bart/.platformio/packages/framework-espidf/components/esp_common", "/home/bart/.platformio/packages/framework-espidf/components/esp_hw_support", "/home/bart/.platformio/packages/framework-espidf/components/esp_rom", "/home/bart/.platformio/packages/framework-espidf/components/esp_system", "/home/bart/.platformio/packages/framework-espidf/components/esptool_py", "/home/bart/.platformio/packages/framework-espidf/components/freertos", "/home/bart/.platformio/packages/framework-espidf/components/hal", "/home/bart/.platformio/packages/framework-espidf/components/log", "/home/bart/.platformio/packages/framework-espidf/components/bootloader/subproject/main", "/home/bart/.platformio/packages/framework-espidf/components/bootloader/subproject/components/micro-ecc", "/home/bart/.platformio/packages/framework-espidf/components/newlib", "/home/bart/.platformio/packages/framework-espidf/components/partition_table", "/home/bart/.platformio/packages/framework-espidf/components/soc", "/home/bart/.platformio/packages/framework-espidf/components/spi_flash", "/home/bart/.platformio/packages/framework-espidf/components/xtensa", "" ]
+}
