@@ -54,7 +54,7 @@ void app_main()
 
     while (1)
     {
-        if (!gpio_get_level(GPIO_NUM_23))
+        if (!gpio_get_level(RESET_GPIO))
         {
             unsigned long time1 = esp_timer_get_time() / 1000ULL;
             std::string grid;
