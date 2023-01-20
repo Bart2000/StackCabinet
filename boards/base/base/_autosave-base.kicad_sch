@@ -2534,7 +2534,7 @@
   (symbol (lib_id "Device:R") (at 154.94 115.57 180) (unit 1)
     (in_bom yes) (on_board yes)
     (uuid be4a9459-d6a5-4324-9fc6-fb68e81084ef)
-    (property "Reference" "R?" (id 0) (at 152.4 115.57 90))
+    (property "Reference" "R1" (id 0) (at 152.4 115.57 90))
     (property "Value" "10k" (id 1) (at 157.48 115.57 90))
     (property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P5.08mm_Vertical" (id 2) (at 156.718 115.57 90)
       (effects (font (size 1.27 1.27)) hide)
@@ -2590,7 +2590,7 @@
   (symbol (lib_id "power:GND") (at 154.94 121.92 0) (unit 1)
     (in_bom yes) (on_board yes) (fields_autoplaced)
     (uuid da3ebd0d-8163-4732-86d7-cc7a98cfc27a)
-    (property "Reference" "#PWR?" (id 0) (at 154.94 128.27 0)
+    (property "Reference" "#PWR0107" (id 0) (at 154.94 128.27 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (id 1) (at 154.94 127 0))
@@ -2714,7 +2714,7 @@
       (reference "#PWR0106") (unit 1) (value "GND") (footprint "")
     )
     (path "/da3ebd0d-8163-4732-86d7-cc7a98cfc27a"
-      (reference "#PWR?") (unit 1) (value "GND") (footprint "")
+      (reference "#PWR0107") (unit 1) (value "GND") (footprint "")
     )
     (path "/73408e9c-10be-4e10-ba76-b1dd1086b0ce"
       (reference "C2") (unit 1) (value "1uF") (footprint "Capacitor_SMD:C_0805_2012Metric")
@@ -2764,6 +2764,9 @@
     (path "/328b3c4f-a853-4df6-a789-1fa3140a4755"
       (reference "Q1") (unit 1) (value "BC547") (footprint "Package_TO_SOT_THT:TO-92_Inline")
     )
+    (path "/be4a9459-d6a5-4324-9fc6-fb68e81084ef"
+      (reference "R1") (unit 1) (value "10k") (footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P5.08mm_Vertical")
+    )
     (path "/7dec50cc-e90b-41bb-ace3-9f4696613882"
       (reference "R4") (unit 1) (value "10k") (footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P5.08mm_Vertical")
     )
@@ -2775,9 +2778,6 @@
     )
     (path "/97a018cf-2dc4-404e-9e1a-b5676b8bb3a3"
       (reference "R8") (unit 1) (value "100") (footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P5.08mm_Vertical")
-    )
-    (path "/be4a9459-d6a5-4324-9fc6-fb68e81084ef"
-      (reference "R?") (unit 1) (value "10k") (footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P5.08mm_Vertical")
     )
     (path "/432b8744-344b-4b83-b016-4a2f511d6c04"
       (reference "SW1") (unit 1) (value "SW_Push") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical")
