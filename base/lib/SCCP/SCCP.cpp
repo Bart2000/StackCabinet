@@ -44,13 +44,14 @@ void SCCP::initialize()
     uart_driver_install(UART_NUM, BUF_SIZE, BUF_SIZE, 20, &SCCP::uart_queue, 0);    
 
     // Setup GPIO
-    gpio_set_direction(GATE_GPIO, GPIO_MODE_INPUT);
+    gpio_set_direction(GATE_GPIO, GPIO_MODE_OUTPUT);
     gpio_set_direction(RELAY_GPIO, GPIO_MODE_OUTPUT);
     gpio_set_direction(RESET_GPIO, GPIO_MODE_INPUT);
     gpio_pullup_en(RESET_GPIO);
 
     // Set initial GPIO levels
     gpio_set_level(RELAY_GPIO, 1);
+    gpio_set_level(GATE_GPIO, 1);
 }
 
 uint8_t SCCP::identify()
@@ -68,7 +69,6 @@ uint8_t SCCP::identify()
     vTaskDelay(100);
 
     // Pull gate low for first cabinet identification
-    gpio_set_direction(GATE_GPIO, GPIO_MODE_OUTPUT);
     gpio_set_level(GATE_GPIO, 0);
 
     vTaskDelay(10);
@@ -103,8 +103,6 @@ uint8_t SCCP::identify()
 
     // Pull gate high
     gpio_set_level(GATE_GPIO, 1);
-    gpio_set_direction(GATE_GPIO, GPIO_MODE_INPUT);
-    gpio_pullup_en(GATE_GPIO);
 
     uint8_t size = this->graph.size();
 
