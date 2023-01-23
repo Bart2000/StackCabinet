@@ -1,0 +1,43 @@
+//
+// !!! WARNING !!! AUTO-GENERATED FILE!
+// PLEASE DO NOT MODIFY IT AND USE "platformio.ini":
+// https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags
+//
+{
+    "configurations": [
+        {
+            "name": "PlatformIO",
+            "includePath": [
+                "/home/bart/Repos/StackCabinet/cab/include",
+                "/home/bart/Repos/StackCabinet/cab/src",
+                "/home/bart/Repos/StackCabinet/cab/lib/SCCP",
+                ""
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "/home/bart/Repos/StackCabinet/cab/include",
+                    "/home/bart/Repos/StackCabinet/cab/src",
+                    "/home/bart/Repos/StackCabinet/cab/lib/SCCP",
+                    ""
+                ]
+            },
+            "defines": [
+                "F_CPU=16000000L",
+                "PLATFORMIO=60105",
+                "ARDUINO_attinyxy6",
+                "MILLIS_USE_TIMERD0",
+                "UARTBAUD5V",
+                ""
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "compilerPath": "/home/bart/.platformio/packages/toolchain-atmelavr@1.70300.191015/bin/avr-gcc",
+            "compilerArgs": [
+                "-mmcu=attiny1616",
+                ""
+            ]
+        }
+    ],
+    "version": 4
+}
