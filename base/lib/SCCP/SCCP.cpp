@@ -30,7 +30,7 @@ void SCCP::initialize()
     // Config specific for GM67
     uart_config_t uart_config =
         {
-            .baud_rate = BAUDRATE, // Baudrate of GM67
+            .baud_rate = BAUDRATE,
             .data_bits = UART_DATA_8_BITS,
             .parity = UART_PARITY_DISABLE,
             .stop_bits = UART_STOP_BITS_1,
@@ -41,7 +41,7 @@ void SCCP::initialize()
     // Configure UART
     uart_set_pin(UART_NUM, TX_GPIO, RX_GPIO, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
     uart_param_config(UART_NUM, &uart_config);
-    uart_driver_install(UART_NUM, BUF_SIZE, BUF_SIZE, 20, &SCCP::uart_queue, 0);    
+    uart_driver_install(UART_NUM, BUF_SIZE, BUF_SIZE, 128, &SCCP::uart_queue, 0);    
 
     // Setup GPIO
     gpio_set_direction(GATE_GPIO, GPIO_MODE_OUTPUT);
@@ -200,7 +200,7 @@ void SCCP::graph_to_json(string *result)
     stream.seekp(-2, std::ios_base::end);
     stream << "]";
 
-    std::cout << esp_get_free_heap_size() << std::endl;
+    //std::cout << esp_get_free_heap_size() << std::endl;
 
     std::cout << stream.str() << std::endl;
 
@@ -270,21 +270,46 @@ void SCCP::receive_loop(void *handle)
         {
             switch (event.type)
             {
-            case UART_DATA:
-                printf("A\n");
-                uart_read_bytes(UART_NUM, sccp->buffer, event.size, portMAX_DELAY);
+                case UART_DATA:
+                    printf("UART_DATA\n");
+                    uart_read_bytes(UART_NUM, sccp->buffer, event.size, (TickType_t)portMAX_DELAY);
 
-                if ((sccp->buffer[HEADER_SIZE - 1] & DATA_LEN_MASK) + HEADER_SIZE == event.size)
-                {
-                    sccp->handle_command();
-                    uart_flush(UART_NUM);
-                }
-                break;
-            default:
-                break;
+                    if ((sccp->buffer[HEADER_SIZE - 1] & DATA_LEN_MASK) + HEADER_SIZE == event.size)
+                    {
+                        sccp->handle_command();
+                        uart_flush(UART_NUM);
+                    }
+                    break;
+
+                case UART_FIFO_OVF:
+                    printf("UART_FIFO_OVF\n");
+                    break;
+                //Event of UART ring buffer full
+                case UART_BUFFER_FULL:
+                    printf("UART_BUFFER_FULL\n");
+                    break;
+                //Event of UART RX break detected
+                case UART_BREAK:
+                    printf("UART_BREAK\n");
+                    break;
+                //Event of UART parity check error
+                case UART_PARITY_ERR:
+                    printf("UART_PARITY_ERR\n");
+                    break;
+                //Event of UART frame error
+                case UART_FRAME_ERR:
+                    printf("UART_FRAME_ERR\n");
+                    break;
+                //UART_PATTERN_DET
+                case UART_PATTERN_DET:
+                    printf("UART_PATTERN_DET\n");
+                    break;
+                default:
+                    printf("this is kinda goofy\n");
+                    break;
             }
         }
-        vTaskDelay(1);
+        vTaskDelay(1 / portTICK_PERIOD_MS);
     }
 
     vTaskDelete(NULL);

@@ -20,7 +20,7 @@
 #define BASE_ID 255
 
 #define F_CPU 3333333
-#define BAUDRATE 115200
+#define BAUDRATE 9600
 #define USART0_BAUD_RATE(BAUD_RATE) ((float)(F_CPU * 64 / (16 * (float)BAUD_RATE)) + 0.5)
 
 class SCCP;
