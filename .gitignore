@@ -1,0 +1,11 @@
+*.iml
+.externalNativeBuild
+.cxx
+local.properties
+*/build/
+*/cmake-build-debug/
+*/.idea
+*/.vscode
+*/.gradle
+*.lock
+*.pio
