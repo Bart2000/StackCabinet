@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name "StackCabinet")(type "KiCad")(uri "${KIPRJMOD}/StackCabinet.kicad_sym")(options "")(descr ""))
+  (lib (name "xl1509-5.0")(type "KiCad")(uri "/home/bart/Downloads/xl1509-5.0.kicad_sym")(options "")(descr ""))
+)
