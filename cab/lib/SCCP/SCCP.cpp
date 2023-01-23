@@ -32,14 +32,15 @@ void SCCP::init()
 {
     PORTB.PIN2CTRL = PORT_PULLUPEN_bm;                              // Configure pullup for TX
     USART0.CTRLA = USART_LBME_bm | USART_RXCIE_bm;                  // Connect RX and TX with Loop-Back Mode, enable RX receive interrupt
-    USART0.CTRLB = USART_ODME_bm | USART_TXEN_bm | USART_RXEN_bm;   // Enable Open-Drain mode, enable TX/RX
-    USART0.CTRLC = USART_CHSIZE_8BIT_gc | USART_SBMODE_1BIT_gc;     // Configure USART in 8-bit, 1 stop bit mode
+    USART0.CTRLB = USART_ODME_bm | USART_TXEN_bm | USART_RXEN_bm | USART_RXMODE_NORMAL_gc;   // Enable Open-Drain mode, enable TX/RX
+    USART0.CTRLC = USART_CHSIZE_8BIT_gc | USART_SBMODE_1BIT_gc | USART_CMODE_ASYNCHRONOUS_gc;     // Configure USART in 8-bit, 1 stop bit mode
 
-    int8_t  sigrow_value = SIGROW.OSC20ERR3V;                       // Read signed error
-	int32_t baud = (F_CPU * 64) / (BAUDRATE * 16);                  // Calculate ideal baud rate
+    int8_t  sigrow_value = SIGROW.OSC20ERR5V;                       // Read signed error
+	//int32_t baud = (F_CPU * 64) / (BAUDRATE * 16);                  // Calculate ideal baud rate
+    uint32_t baud = USART0_BAUD_RATE(BAUDRATE);
 	baud *= (1024 + sigrow_value);                                  // Sum resolution + error
 	baud /= 1024;                                                   // Divide by resolution
-	USART0.BAUD = (int16_t)baud;                                    // Set adjusted baudrate
+	USART0.BAUD = (uint16_t)baud;                                    // Set adjusted baudrate
 
     this->product_id = nvm.read_byte(PRODUCT_ADDR);
 }
