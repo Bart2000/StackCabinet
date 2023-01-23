@@ -12,15 +12,15 @@ class Square : Cabinet() {
         this.height = 100.dp
     }
 
-    override fun calculatePosition(cabinet: Cabinet, gate: Int) {
-        val pos = (cabinet.dir?.ordinal?.plus(gate))?.rem(4)
+    override fun calculatePosition(adjacent: Cabinet, gate: Int) {
+        val pos = (adjacent.dir?.ordinal?.plus(gate))?.rem(4)
         if (pos != null) {
             val vector: IntArray = vectors[pos]
-            val receivingGate: Int = adjacent.indexOf(cabinet)
+            val receivingGate: Int = this.adjacent.indexOf(adjacent)
             val direction = (pos + 2 + (4 - receivingGate)) % 4
             this.dir = Direction.values()[direction]
-            this.x = cabinet.x + spacing * 2 * vector[0]
-            this.y = cabinet.y - spacing * 2 * vector[1]
+            this.x = adjacent.x + spacing * 2 * vector[0]
+            this.y = adjacent.y + spacing * 2 * vector[1]
         }
     }
 
