@@ -1,5 +1,5 @@
-#include "SCCP.h"
-#include "stdio.h"
+#include <SCCP.h>
+#include <stdio.h>
 
 QueueHandle_t SCCP::uart_queue;
 TaskHandle_t SCCP::handle;
@@ -38,27 +38,20 @@ void SCCP::initialize()
             .source_clk = UART_SCLK_APB,
         };
 
-    // Set pins to UART 1
+    // Configure UART
     uart_set_pin(UART_NUM, TX_GPIO, RX_GPIO, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-
-    // Configure UART 1
     uart_param_config(UART_NUM, &uart_config);
+    uart_driver_install(UART_NUM, BUF_SIZE, BUF_SIZE, 20, &SCCP::uart_queue, 0);    
 
-    // Install UART drivers for UART 1
-    uart_driver_install(UART_NUM, BUF_SIZE, BUF_SIZE, 20, &SCCP::uart_queue, 0);
+    // Setup GPIO
+    gpio_set_direction(GATE_GPIO, GPIO_MODE_OUTPUT);
+    gpio_set_direction(RELAY_GPIO, GPIO_MODE_OUTPUT);
+    gpio_set_direction(RESET_GPIO, GPIO_MODE_INPUT);
+    gpio_pullup_en(RESET_GPIO);
 
-    // uart_driver_install(UART_NUM_1, 256, 256, 0, NULL, 0);
-    //  Setup the button that start the identification process
-    gpio_set_direction(GPIO_NUM_23, GPIO_MODE_INPUT);
-    // Enable pull up
-    gpio_pullup_en(GPIO_NUM_23);
-
-    gpio_set_direction(GPIO_NUM_32, GPIO_MODE_OUTPUT);
-    // Transistor to power Cabs
-    gpio_set_direction(GPIO_NUM_5, GPIO_MODE_OUTPUT);
-
-    gpio_set_level(GPIO_NUM_32, 1);
-    gpio_set_level(GPIO_NUM_5, 1);
+    // Set initial GPIO levels
+    gpio_set_level(RELAY_GPIO, 1);
+    gpio_set_level(GATE_GPIO, 1);
 }
 
 uint8_t SCCP::identify()
@@ -70,13 +63,13 @@ uint8_t SCCP::identify()
     this->id = 1;
 
     // Power cycle cabinets
-    gpio_set_level(GPIO_NUM_5, 0);
+    gpio_set_level(RELAY_GPIO, 0);
     vTaskDelay(100);
-    gpio_set_level(GPIO_NUM_5, 1);
+    gpio_set_level(RELAY_GPIO, 1);
     vTaskDelay(100);
 
     // Pull gate low for first cabinet identification
-    gpio_set_level(GPIO_NUM_32, 0);
+    gpio_set_level(GATE_GPIO, 0);
 
     vTaskDelay(10);
 
@@ -104,12 +97,12 @@ uint8_t SCCP::identify()
     }
     else
     {
-        gpio_set_level(GPIO_NUM_32, 1);
+        gpio_set_level(GATE_GPIO, 1);
         return 0;
     }
 
     // Pull gate high
-    gpio_set_level(GPIO_NUM_32, 1);
+    gpio_set_level(GATE_GPIO, 1);
 
     uint8_t size = this->graph.size();
 
@@ -278,6 +271,7 @@ void SCCP::receive_loop(void *handle)
             switch (event.type)
             {
             case UART_DATA:
+                printf("A\n");
                 uart_read_bytes(UART_NUM, sccp->buffer, event.size, portMAX_DELAY);
 
                 if ((sccp->buffer[HEADER_SIZE - 1] & DATA_LEN_MASK) + HEADER_SIZE == event.size)

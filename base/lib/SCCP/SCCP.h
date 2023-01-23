@@ -6,6 +6,7 @@
 #include <string.h>
 #include <driver/gpio.h>
 #include <driver/uart.h>
+#include <esp_timer.h>
 #include <vector>
 #include <iostream>
 #include <algorithm>
@@ -17,21 +18,23 @@
 #define CMD_ID_SHIFT 4
 #define DATA_LEN_MASK 0x0F
 #define BASE_ID 255
-#define GATE GPIO_NUM_12
 #define BROADCAST_ID 0
 #define BAUDRATE 115200
 #define BUF_SIZE 2048
 #define UART_NUM UART_NUM_1
-#define TX_GPIO 13
-#define RX_GPIO 12
+#define TX_GPIO GPIO_NUM_13
+#define RX_GPIO GPIO_NUM_12
 #define TIMEOUT_MS 10
 #define MEMBERS 6
+
+#define GATE_GPIO GPIO_NUM_32
+#define RESET_GPIO GPIO_NUM_23
+#define RELAY_GPIO GPIO_NUM_5
 
 #define BAUDRATE 115200
 
 using Graph = std::vector<std::vector<uint8_t>>;
 using namespace std;
-//using json = nlohmann::json;
 
 class SCCP;
 
