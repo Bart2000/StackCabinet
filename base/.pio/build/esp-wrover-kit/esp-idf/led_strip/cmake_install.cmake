@@ -1,4 +1,4 @@
-# Install script for directory: /home/bart/Repos/StackCabinet/base/components/led_strip
+# Install script for directory: /home/stefan/Work/StackCabinet/base/components/led_strip
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

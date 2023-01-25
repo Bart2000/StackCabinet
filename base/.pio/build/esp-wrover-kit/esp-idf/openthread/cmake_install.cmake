@@ -1,4 +1,4 @@
-# Install script for directory: /home/bart/.platformio/packages/framework-espidf/components/openthread
+# Install script for directory: /home/stefan/.platformio/packages/framework-espidf/components/openthread
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

@@ -1,4 +1,4 @@
-# Install script for directory: /home/bart/.platformio/packages/framework-espidf/components/esp_lcd
+# Install script for directory: /home/stefan/.platformio/packages/framework-espidf/components/esp_lcd
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

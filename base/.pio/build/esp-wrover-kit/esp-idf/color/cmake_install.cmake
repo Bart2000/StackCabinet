@@ -1,4 +1,4 @@
-# Install script for directory: /home/bart/Repos/StackCabinet/base/components/color
+# Install script for directory: /home/stefan/Work/StackCabinet/base/components/color
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

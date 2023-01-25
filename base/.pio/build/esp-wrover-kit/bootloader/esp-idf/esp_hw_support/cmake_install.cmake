@@ -1,4 +1,4 @@
-# Install script for directory: /home/bart/.platformio/packages/framework-espidf/components/esp_hw_support
+# Install script for directory: /home/stefan/.platformio/packages/framework-espidf/components/esp_hw_support
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -34,7 +34,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/bart/Repos/StackCabinet/base/.pio/build/esp-wrover-kit/bootloader/esp-idf/esp_hw_support/port/esp32/cmake_install.cmake")
+  include("/home/stefan/Work/StackCabinet/base/.pio/build/esp-wrover-kit/bootloader/esp-idf/esp_hw_support/port/esp32/cmake_install.cmake")
 
 endif()
 

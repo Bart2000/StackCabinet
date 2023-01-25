@@ -1,4 +1,4 @@
-# Install script for directory: /home/bart/Repos/StackCabinet/base
+# Install script for directory: /home/stefan/Work/StackCabinet/base
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -34,7 +34,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/bart/Repos/StackCabinet/base/.pio/build/esp-wrover-kit/esp-idf/cmake_install.cmake")
+  include("/home/stefan/Work/StackCabinet/base/.pio/build/esp-wrover-kit/esp-idf/cmake_install.cmake")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/bart/Repos/StackCabinet/base/.pio/build/esp-wrover-kit/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/stefan/Work/StackCabinet/base/.pio/build/esp-wrover-kit/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

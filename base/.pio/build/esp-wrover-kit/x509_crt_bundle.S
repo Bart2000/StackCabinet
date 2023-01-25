@@ -1,4 +1,4 @@
-/* * Data converted from /home/bart/Repos/StackCabinet/base/.pio/build/esp-wrover-kit/x509_crt_bundle
+/* * Data converted from /home/stefan/Work/StackCabinet/base/.pio/build/esp-wrover-kit/x509_crt_bundle
  */
 .data
 .section .rodata.embedded

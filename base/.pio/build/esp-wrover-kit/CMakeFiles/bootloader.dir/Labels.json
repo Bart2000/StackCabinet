@@ -2,34 +2,34 @@
 	"sources" : 
 	[
 		{
-			"file" : "/home/bart/Repos/StackCabinet/base/.pio/build/esp-wrover-kit/CMakeFiles/bootloader"
+			"file" : "/home/stefan/Work/StackCabinet/base/.pio/build/esp-wrover-kit/CMakeFiles/bootloader"
 		},
 		{
-			"file" : "/home/bart/Repos/StackCabinet/base/.pio/build/esp-wrover-kit/CMakeFiles/bootloader.rule"
+			"file" : "/home/stefan/Work/StackCabinet/base/.pio/build/esp-wrover-kit/CMakeFiles/bootloader.rule"
 		},
 		{
-			"file" : "/home/bart/Repos/StackCabinet/base/.pio/build/esp-wrover-kit/CMakeFiles/bootloader-complete.rule"
+			"file" : "/home/stefan/Work/StackCabinet/base/.pio/build/esp-wrover-kit/CMakeFiles/bootloader-complete.rule"
 		},
 		{
-			"file" : "/home/bart/Repos/StackCabinet/base/.pio/build/esp-wrover-kit/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule"
+			"file" : "/home/stefan/Work/StackCabinet/base/.pio/build/esp-wrover-kit/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule"
 		},
 		{
-			"file" : "/home/bart/Repos/StackCabinet/base/.pio/build/esp-wrover-kit/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule"
+			"file" : "/home/stefan/Work/StackCabinet/base/.pio/build/esp-wrover-kit/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule"
 		},
 		{
-			"file" : "/home/bart/Repos/StackCabinet/base/.pio/build/esp-wrover-kit/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule"
+			"file" : "/home/stefan/Work/StackCabinet/base/.pio/build/esp-wrover-kit/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule"
 		},
 		{
-			"file" : "/home/bart/Repos/StackCabinet/base/.pio/build/esp-wrover-kit/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule"
+			"file" : "/home/stefan/Work/StackCabinet/base/.pio/build/esp-wrover-kit/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule"
 		},
 		{
-			"file" : "/home/bart/Repos/StackCabinet/base/.pio/build/esp-wrover-kit/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule"
+			"file" : "/home/stefan/Work/StackCabinet/base/.pio/build/esp-wrover-kit/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule"
 		},
 		{
-			"file" : "/home/bart/Repos/StackCabinet/base/.pio/build/esp-wrover-kit/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule"
+			"file" : "/home/stefan/Work/StackCabinet/base/.pio/build/esp-wrover-kit/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule"
 		},
 		{
-			"file" : "/home/bart/Repos/StackCabinet/base/.pio/build/esp-wrover-kit/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule"
+			"file" : "/home/stefan/Work/StackCabinet/base/.pio/build/esp-wrover-kit/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule"
 		}
 	],
 	"target" : 

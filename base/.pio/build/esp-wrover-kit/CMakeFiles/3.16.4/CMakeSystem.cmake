@@ -1,9 +1,9 @@
-set(CMAKE_HOST_SYSTEM "Linux-5.13.0-44-generic")
+set(CMAKE_HOST_SYSTEM "Linux-5.15.0-56-generic")
 set(CMAKE_HOST_SYSTEM_NAME "Linux")
-set(CMAKE_HOST_SYSTEM_VERSION "5.13.0-44-generic")
+set(CMAKE_HOST_SYSTEM_VERSION "5.15.0-56-generic")
 set(CMAKE_HOST_SYSTEM_PROCESSOR "x86_64")
 
-include("/home/bart/.platformio/packages/framework-espidf/tools/cmake/toolchain-esp32.cmake")
+include("/home/stefan/.platformio/packages/framework-espidf/tools/cmake/toolchain-esp32.cmake")
 
 set(CMAKE_SYSTEM "Generic")
 set(CMAKE_SYSTEM_NAME "Generic")

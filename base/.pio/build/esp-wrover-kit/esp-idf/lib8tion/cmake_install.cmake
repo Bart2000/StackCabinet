@@ -1,4 +1,4 @@
-# Install script for directory: /home/bart/Repos/StackCabinet/base/components/lib8tion
+# Install script for directory: /home/stefan/Work/StackCabinet/base/components/lib8tion
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
