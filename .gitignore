@@ -8,4 +8,4 @@ local.properties
 */.vscode
 */.gradle
 *.lock
-*.pio
+/base/.pio/
