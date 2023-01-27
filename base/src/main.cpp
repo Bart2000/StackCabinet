@@ -11,46 +11,40 @@
 #include "freertos/queue.h"
 #include "driver/uart.h"
 #include <soc/uart_reg.h>
-
+#include <led_strip.h>
 
 extern "C"
 {
     void app_main(void);
 }
 
+static const rgb_t colors[] = {
+    {.r = 0x0f, .g = 0x0f, .b = 0x0f},
+    {.r = 0xff, .g = 0x00, .b = 0x00}, // red
+    {.r = 0x00, .g = 0xff, .b = 0x00}, // green
+    {.r = 0x00, .g = 0x00, .b = 0xff}, // blue
+};
+
 void app_main()
 {
-    SCCP sccp;
-    Bluetooth esp_bt(&sccp);
+    led_strip_t strip = {
+        .type = LED_STRIP_SK6812,
+        .brightness = 255,
+        .length = 3,
+        .gpio = GPIO_NUM_18,
+        .buf = NULL,
+    };
 
-    // led_strip_t *test = led_strip_init(RMT_CHANNEL_0, GPIO_NUM_18, 3);
-    // gpio_set_direction(GPIO_NUM_18, GPIO_MODE_OUTPUT);
-    // gpio_set_level(GPIO_NUM_5, 1);
+    led_strip_install();
+    led_strip_init(&strip);
 
-    // Pixels* pixels = new Pixels(GPIO_NUM_18, 1, Pixels::StripType::ws6812, RMT_CHANNEL_0, 2.8);
-    // Effect* effect = EffectFactory::CreateEffect("rainbow", 1, 5);
-    // Pixel red = {255, 0, 0, 255};
-    // pixels->SetPixel(0, red);
-    // pixels->Write();
+    led_strip_set_pixel(&strip, 0, colors[1]);
+    led_strip_set_pixel(&strip, 1, colors[1]);
+    led_strip_set_pixel(&strip, 2, colors[1]);
+    led_strip_flush(&strip);
 
-    // while(true)
-    // {
-    //     test->set_pixel(test, 0, 255, 0, 0);
-    //     test->set_pixel(test, 1, 0, 255, 0);
-    //     test->set_pixel(test, 2, 0, 0, 255);
-    //     test->refresh(test, 200);
-    //     vTaskDelay(100);
-    //     test->set_pixel(test, 2, 255, 0, 0);
-    //     test->set_pixel(test, 0, 0, 255, 0);
-    //     test->set_pixel(test, 1, 0, 0, 255);
-    //     test->refresh(test, 200);
-    //     vTaskDelay(100);
-    //     test->set_pixel(test, 1, 255, 0, 0);
-    //     test->set_pixel(test, 2, 0, 255, 0);
-    //     test->set_pixel(test, 0, 0, 0, 255);
-    //     test->refresh(test, 200);
-    //     vTaskDelay(100);
-    // }
+    SCCP sccp(&strip);
+    Bluetooth esp_bt(&sccp, &strip);
 
     while (1)
     {

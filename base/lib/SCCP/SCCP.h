@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <sstream>
 #include <iterator>
+#include <led_strip.h>
 
 #define HEADER_SIZE 2
 #define DATA_SIZE 16
@@ -96,7 +97,7 @@ class SCCP
         static QueueHandle_t uart_queue;
         static TaskHandle_t handle;
         uint8_t control_flag;
-        SCCP();
+        SCCP(led_strip_t *strip);
         uint8_t identify();
         Graph graph;
         void send(sccp_packet_t packet);
@@ -106,6 +107,7 @@ class SCCP
         void inack(uint8_t* packet_data);
         void ack(uint8_t* packet_data);
         void graph_to_json(string* result);
+        led_strip_t *strip;
 
     private:
         uint8_t buffer[HEADER_SIZE + DATA_SIZE];

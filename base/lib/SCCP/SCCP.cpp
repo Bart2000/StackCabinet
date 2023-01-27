@@ -3,6 +3,14 @@
 
 QueueHandle_t SCCP::uart_queue;
 TaskHandle_t SCCP::handle;
+led_strip_t *strip;
+
+static const rgb_t colors[] = {
+    { .r = 0x0f, .g = 0x0f, .b = 0x0f },
+    { .r = 0xff, .g = 0x00, .b = 0x00 }, // red
+    { .r = 0x00, .g = 0xff, .b = 0x00 }, // green
+    { .r = 0x00, .g = 0x00, .b = 0xff }, // blue
+};
 
 sccp_command_t commands[] = {
     {NULL, 0},
@@ -16,13 +24,14 @@ sccp_command_t commands[] = {
     {&SCCP::ack, 100},
 };
 
-SCCP::SCCP()
+SCCP::SCCP(led_strip_t* strip)
 {
     initialize();
     xTaskCreate(this->receive_loop, "UART_receive_loop", 2048, (void *)this, 1, &SCCP::handle);
     this->buffer[HEADER_SIZE + DATA_SIZE] = {0};
     SCCP::control_flag = 0;
     this->id = 1;
+    this->strip = strip;
 }
 
 void SCCP::initialize()
@@ -35,7 +44,7 @@ void SCCP::initialize()
             .parity = UART_PARITY_DISABLE,
             .stop_bits = UART_STOP_BITS_1,
             .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-            .source_clk = UART_SCLK_APB,
+            .source_clk = UART_SCLK_APB
         };
 
     // Configure UART
@@ -62,11 +71,18 @@ uint8_t SCCP::identify()
     this->graph.push_back({255, 1});
     this->id = 1;
 
+    led_strip_set_pixel(strip, 0, colors[3]);
+    led_strip_set_pixel(strip, 1, colors[3]);
+    led_strip_flush(strip);
+
     // Power cycle cabinets
     gpio_set_level(RELAY_GPIO, 0);
     vTaskDelay(100);
     gpio_set_level(RELAY_GPIO, 1);
     vTaskDelay(100);
+
+    led_strip_set_pixel(strip, 0, colors[2]);
+    led_strip_flush(strip);
 
     // Pull gate low for first cabinet identification
     gpio_set_level(GATE_GPIO, 0);
@@ -98,6 +114,8 @@ uint8_t SCCP::identify()
     else
     {
         gpio_set_level(GATE_GPIO, 1);
+        led_strip_set_pixel(strip, 1, colors[1]);
+        led_strip_flush(strip);
         return 0;
     }
 
@@ -163,16 +181,26 @@ uint8_t SCCP::identify()
                 send(sccp_packet_t(c, DGAT, sizeof(data), data));
 
                 // Stop identification process if gate is not closed
-                if (!get_response(&response) || response.cmd_id != ACK)
+                if (!get_response(&response) || response.cmd_id != ACK) 
+                {
+                    led_strip_set_pixel(strip, 1, colors[1]);
+                    led_strip_flush(strip);
                     return 0;
+                }
+                    
             }
             else
             {
                 // Stop identification if gate is not opened
+                led_strip_set_pixel(strip, 1, colors[1]);
+                led_strip_flush(strip);
                 return 0;
             }
         }
     }
+
+    led_strip_set_pixel(strip, 1, colors[2]);
+    led_strip_flush(strip);
 
     return 1;
 }
@@ -183,7 +211,7 @@ void SCCP::graph_to_json(string *result)
     size_t s = this->graph.size();
 
     // Construct JSON string
-    stream << "REQUEST_GRID|[";
+    stream << "0|[";
     for (size_t i = 0; i < s; i++)
     {
         size_t s2 = this->graph.at(i).size();

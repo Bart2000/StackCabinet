@@ -3,10 +3,27 @@
 using namespace std;
 
 SCCP *Bluetooth::sccp;
+led_strip_t *Bluetooth::strip;
 
-Bluetooth::Bluetooth(SCCP *sccp)
+scbp_command_t commands_bluetooth[] = {
+    {&Bluetooth::request_grid},
+    {&Bluetooth::set_component},
+    {&Bluetooth::set_led},
+    {&Bluetooth::open_drawer}};
+
+spp_param_t parameter_bluetooth;
+
+static const rgb_t colors[] = {
+    {.r = 0x0f, .g = 0x0f, .b = 0x0f},
+    {.r = 0xff, .g = 0x00, .b = 0x00}, // red
+    {.r = 0x00, .g = 0xff, .b = 0x00}, // green
+    {.r = 0x00, .g = 0x00, .b = 0xff}, // blue
+};
+
+Bluetooth::Bluetooth(SCCP *sccp, led_strip_t *strip)
 {
     Bluetooth::sccp = sccp;
+    Bluetooth::strip = strip;
 
     char bda_str[18] = {0};
     esp_err_t ret = nvs_flash_init();
@@ -51,14 +68,6 @@ Bluetooth::Bluetooth(SCCP *sccp)
     esp_bt_pin_type_t pin_type = ESP_BT_PIN_TYPE_VARIABLE;
     esp_bt_pin_code_t pin_code;
     esp_bt_gap_set_pin(pin_type, 0, pin_code);
-
-    // ESP_LOGI(SETUP_BT_TAG, "Own address:[%s]", bda2str((uint8_t *)esp_bt_dev_get_address(), bda_str, sizeof(bda_str)));
-}
-
-void Bluetooth::init(SCCP *sccp)
-{
-    // Bluetooth::sccp = sccp;
-    // Add LED object
 }
 
 /**
@@ -125,46 +134,46 @@ void Bluetooth::esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
     case ESP_SPP_INIT_EVT:
         spp_init_evt(DEVICE_NAME);
         break;
-    case ESP_SPP_DATA_IND_EVT: // When SPP connection received data, the event comes, only for ESP_SPP_MODE_CB
+    case ESP_SPP_DATA_IND_EVT:
+    { // When SPP connection received data, the event comes, only for ESP_SPP_MODE_CB
 
         esp_log_buffer_hex("Received HEX Data", param->data_ind.data, param->data_ind.len);
         esp_log_buffer_char("Received String Data", param->data_ind.data, param->data_ind.len);
-        // saveData(RECEIVED_DATA, param->data_ind.len, param->data_ind.data);
-        // processCommand(param, checkCommand(charArrayLastSendData));
 
-        ESP_LOGI(SPP_CB_TAG, "Call esp_spp_write(param->write.handle, 8, Received)");
-        // char *c = "RECEIVED";
-        // uint8_t *u = (uint8_t *)c;
-        // uint8_t x = u[1];
-        // esp_spp_write(param->srv_open.handle, strlen(c), u);
-        // saveData(SEND_DATA, strlen(c), u);
+        string incoming_raw = (char *)param->data_ind.data;
+
+        if (incoming_raw[0] == '0')
+        {
+            Bluetooth::request_grid(nullptr);
+        }
+        else if (incoming_raw[0] == '3')
+        {
+            Bluetooth::sccp->send(sccp_packet_t(incoming_raw[2] - '0', OCAB, 0, nullptr));
+        }
+
         break;
+    }
 
     case ESP_SPP_SRV_OPEN_EVT: // After connection is established, short before data is received
                                // When SPP Server connection open, the event comes
                                // In use in Acceptor
+    {
         printf("ESP_SPP_SRV_OPEN_EVT \r\n");
 
-        if (true)
-        {
-            // if (sccp->grid.size())
-            // SCCP sccp = *Bluetooth::sccp;
-            printf("size of grid %d\n", Bluetooth::sccp->graph.size());
-            std::string result;
-            if (Bluetooth::sccp->graph.size() < 2)
-            {
+        led_strip_set_pixel(Bluetooth::strip, 2, colors[2]);
+        led_strip_flush(Bluetooth::strip);
 
-                Bluetooth::sccp->identify();
-                printf("Data for app: %s\n", result.c_str());
-            }
-            Bluetooth::sccp->graph_to_json(&result);
+        parameter_bluetooth.spp_cb_param = *param;
+        parameter_bluetooth.spp_conn = true;
 
-            // char *c = "REQUEST_GRID|[[255, 0], [0, 255, 2, 3, 0, 0], [0, 0, 4, 1, 0, 0], [0, 1, 4, 0, 0, 0], [0, 3, 2, 0, 0, 0]]";
-            uint8_t *u = (uint8_t *)result.c_str();
-
-            esp_spp_write(param->srv_open.handle, strlen(result.c_str()), u);
-            // saveData(SEND_DATA, strlen(c), u);
-        }
+        // Bluetooth::request_grid(nullptr);
+    }
+    break;
+    case ESP_SPP_CLOSE_EVT:
+        printf("ESP_SPP_CLOSE_EVT \r\n");
+        parameter_bluetooth.spp_conn = false;
+        led_strip_set_pixel(Bluetooth::strip, 2, colors[1]);
+        led_strip_flush(Bluetooth::strip);
         break;
     default:
         break;
@@ -188,4 +197,59 @@ char *Bluetooth::bda2str(uint8_t *bda, char *str, size_t size)
     sprintf(str, "%02x:%02x:%02x:%02x:%02x:%02x",
             p[0], p[1], p[2], p[3], p[4], p[5]);
     return str;
+}
+
+void Bluetooth::handle_command()
+{
+    bluetooth_packet packet;
+
+    decode(parameter_bluetooth.buffer, &packet);
+
+    // (*(commands_bluetooth[packet.cmd_id].handler))(packet.data);
+}
+
+void Bluetooth::decode(char *data, bluetooth_packet *packet)
+{
+    // Clear packet data
+    std::fill_n(packet->data, DATA_SIZE, 0);
+
+    // Set header
+    packet->cab_id = data[2] - '0';
+    packet->cmd_id = data[0] - '0';
+
+    printf("Got data for CAB %d, command: %d\n", packet->cab_id, packet->cmd_id);
+}
+
+void Bluetooth::send_data(int len, uint8_t *data)
+{
+    if (parameter_bluetooth.spp_conn)
+    {
+        esp_spp_write(parameter_bluetooth.spp_cb_param.srv_open.handle, len, data);
+    }
+}
+
+void Bluetooth::request_grid(uint8_t *data)
+{
+    printf("size of current grid %d\n", Bluetooth::sccp->graph.size());
+    string result;
+    if (Bluetooth::sccp->graph.size() < 2)
+    {
+        Bluetooth::sccp->identify();
+    }
+    Bluetooth::sccp->graph_to_json(&result);
+    printf("grid being send to the app: %s\n", result.c_str());
+
+    Bluetooth::send_data(strlen(result.c_str()), (uint8_t *)result.c_str());
+}
+
+void Bluetooth::set_component(uint8_t *data)
+{
+}
+void Bluetooth::set_led(uint8_t *data)
+{
+}
+void Bluetooth::open_drawer(uint8_t *data)
+{
+    // printf("Opening drawer for cab: %d \n", data[0], data[]);
+    // Bluetooth::sccp->send(sccp_packet_t(data[0]))
 }
