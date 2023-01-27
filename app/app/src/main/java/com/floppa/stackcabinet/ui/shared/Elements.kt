@@ -40,6 +40,7 @@ fun PreviewCabinetCompose() {
         y = 0,
         width = 100.dp,
         height = 100.dp,
+        clickable = true,
         onClick = { println("click") },
         onLongClink = { println(" Long click") },
         onDoubleClick = { println(" Double click") }) {
@@ -68,8 +69,6 @@ fun Modifier.place(x: Int, y: Int) = layout { measurable, constraints ->
 }
 
 
-
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CabinetCompose(
@@ -79,6 +78,7 @@ fun CabinetCompose(
     y: Int,
     width: Dp,
     height: Dp,
+    clickable: Boolean,
     onClick: () -> Unit,
     onLongClink: () -> Unit,
     onDoubleClick: () -> Unit,
@@ -97,10 +97,11 @@ fun CabinetCompose(
                     color = borderColor,
                     shape = RoundedCornerShape(20.dp),
                 )
+
                 .combinedClickable(
-                    onClick = { onClick() },
-                    onLongClick = { onLongClink() },
-                    onDoubleClick = { onDoubleClick() }
+                    onClick = { if (clickable) onClick() },
+                    onLongClick = { if (clickable) onLongClink() },
+                    onDoubleClick = { if (clickable) onDoubleClick() }
                 )
         ) {
             CenterElement {
@@ -126,7 +127,7 @@ fun DotsPulsing() {
     val delayUnit = 300 // you can change delay to change animation speed
     @Composable
     fun Dot(
-        scale: Float
+        scale: Float,
     ) = Spacer(
         Modifier
             .size(dotSize)

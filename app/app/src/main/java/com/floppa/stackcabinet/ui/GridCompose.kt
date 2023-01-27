@@ -147,6 +147,7 @@ fun DrawGrid(grid: List<Cabinet>?, viewModel: GridViewModel) {
                 y = it.y,
                 width = it.width,
                 height = it.height,
+                clickable = !(it.id == 255 || it.id < 1),
                 onClick = {
                     println("Show part: ${it.id}")
 
@@ -157,6 +158,7 @@ fun DrawGrid(grid: List<Cabinet>?, viewModel: GridViewModel) {
                 },
                 onDoubleClick = {
                     println("Open Cabinet")
+                    viewModel.makeCall(Commands().openCabinet(it))
                 }) {
                 // Compose for inside the Cabinet
             }

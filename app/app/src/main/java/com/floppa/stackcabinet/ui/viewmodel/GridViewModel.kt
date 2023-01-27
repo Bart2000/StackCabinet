@@ -61,7 +61,7 @@ class GridViewModel
     /**
      * States of the Bluetooth connection
      */
-    private val _connectionState = MutableStateFlow<Connection>(DISCONNECTED)
+    private val _connectionState = MutableStateFlow(DISCONNECTED)
     val connectionState = _connectionState.asStateFlow()
 
     private val _viewStateScreen = MutableStateFlow<ViewStateScreen>(ViewStateScreen.Grid)
@@ -113,16 +113,15 @@ class GridViewModel
                 MESSAGE_RECEIVED ->{
                     val result = msg.obj as List<*>
                     Log.i("MESSAGE_RECEIVED", "P1: ${result[0].toString()}, P2:${result[1].toString()}")
-                    when (CommandsEnum.valueOf(result[0].toString())){
+                    when (CommandsEnum.values()[result[0].toString().toInt()]){
                         CommandsEnum.REQUEST_GRID -> {
                             println("Parsing GRID")
                             val graph = Gson().fromJson(result[1].toString(),  Array<IntArray>::class.java)
                             calculateGrid(graph)
                         }
-                        CommandsEnum.SET_COMPONENT -> TODO()
+                        CommandsEnum.SET_COM -> TODO()
                         CommandsEnum.SET_LED -> TODO()
-                        CommandsEnum.OPEN_CABINET -> TODO()
-                        CommandsEnum.RESET_ALL -> TODO()
+                        CommandsEnum.OPEN_CAB -> TODO()
                     }
                 }
                 IS_CONNECTED -> {

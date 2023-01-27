@@ -4,10 +4,9 @@ import androidx.compose.ui.graphics.Color
 
 enum class CommandsEnum {
     REQUEST_GRID,
-    SET_COMPONENT,
+    SET_COM,
     SET_LED,
-    OPEN_CABINET,
-    RESET_ALL
+    OPEN_CAB
 }
 
 
@@ -18,7 +17,7 @@ class Commands {
      */
     fun requestGrid(): String {
         return buildString {
-            append(CommandsEnum.REQUEST_GRID.ordinal)
+            append(CommandsEnum.REQUEST_GRID.ordinal).append(",0")
         }
     }
 
@@ -29,7 +28,7 @@ class Commands {
      */
     fun setComponent(component: Component, cabinet: Cabinet): String {
         return buildString {
-            append(CommandsEnum.SET_COMPONENT.ordinal).append(",")
+            append(CommandsEnum.SET_COM.ordinal).append(",")
                 .append(cabinet.id).append(",")
                 .append(component.index)
         }
@@ -41,7 +40,7 @@ class Commands {
      */
     fun resetComponent(cabinet: Cabinet): String {
         return buildString {
-            append(CommandsEnum.SET_COMPONENT.ordinal).append(",")
+            append(CommandsEnum.SET_COM.ordinal).append(",")
                 .append(cabinet.id).append(",")
                 .append("0")
         }
@@ -74,20 +73,8 @@ class Commands {
      */
     fun openCabinet(cabinet: Cabinet): String {
         return buildString {
-            append(CommandsEnum.OPEN_CABINET.ordinal).append(",")
+            append(CommandsEnum.OPEN_CAB.ordinal).append(",")
                 .append(cabinet.id)
         }
     }
-
-    /**
-     * Send command to rest all the cabinet.
-     * By resetting we mean to remove the component ID from a cabinet
-     */
-    fun resetAll(): String {
-        return buildString {
-            append(CommandsEnum.RESET_ALL.ordinal)
-        }
-    }
-
-
 }
